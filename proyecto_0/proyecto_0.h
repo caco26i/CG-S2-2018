@@ -23,12 +23,21 @@ typedef struct {
     double b;
 } COLOR;
 
+typedef struct {
+    int x0;
+    int x1;
+    int y0;
+    int y1;
+} LINE;
+
 int H_SIZE, V_SIZE;
-int lineas, veces;
+int cantidad_lineas, cantidad_veces;
 
 COLOR **buffer;
 
-double r, g, b;
+LINE *buffer_random_lines;
+
+COLOR global_color;
 
 int get_int_random(int);
 
@@ -45,6 +54,8 @@ void line(int, int, int, int);
 void line2(int, int, int, int);
 
 void line3(int, int, int, int);
+
+void draw_lines();
 
 
 
