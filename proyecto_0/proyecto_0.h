@@ -55,6 +55,8 @@ void line2(int, int, int, int);
 
 void line3(int, int, int, int);
 
+void bresenham(int, int, int, int);
+
 void draw_lines();
 
 
