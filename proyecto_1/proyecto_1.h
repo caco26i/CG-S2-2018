@@ -11,6 +11,9 @@
 #include <GL/glu.h>
 #include <GL/glut.h>
 
+#define LEN(arr) ((int) (sizeof (arr) / sizeof (arr)[0]))
+
+
 #define H_SIZE_default 400
 #define V_SIZE_default 400
 
@@ -38,9 +41,19 @@ typedef struct {
     LINE *lines;
 } POLYGON;
 
-void bresenham(int, int, int, int);
+COLOR **buffer;
+COLOR global_color;
+
+int H_SIZE, V_SIZE;
 
 LINE lines[1000];
 int lineCount;
 int tool;
 POLYGON *poly;
+
+long double R_matrix[3][3];
+
+void bresenham(int, int, int, int);
+void draw_scene();
+void renderScene();
+

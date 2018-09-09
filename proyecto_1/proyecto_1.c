@@ -7,10 +7,120 @@
  * Archivo:  proyecto_1.c
  */
 
-#include <GL/glut.h>
-#include <math.h>
+#include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
+#include <math.h>
+#include <ctype.h>
+#include <stdbool.h>
+#include <malloc.h>
+#include <GL/glut.h>
+
 #include "proyecto_1.h"
+
+//int** findNewCoordinate(int s[][2], int p[][1])
+//{
+//    int temp[2][1] = { 0 };
+//
+//    for (int i = 0; i < 2; i++)
+//        for (int j = 0; j < 1; j++)
+//            for (int k = 0; k < 2; k++)
+//                temp[i][j] += (s[i][k] * p[k][j]);
+//
+//    p[0][0] = temp[0][0];
+//    p[1][0] = temp[1][0];
+//
+//    return p;
+//}
+//
+//// Scaling the Polygon
+//void scale(POLYGON *poly, float sx, float sy)
+//{
+//    // Initializing the Scaling Matrix.
+//    int s[2][2] = {
+//            {sx, 0,},
+//            {0, sy}
+//    };
+//
+//    int p[2][1];
+//
+//    // Scaling the triangle
+//    for (int i = 0; i < poly->nlines; i++)
+//    {
+//        p[0][0] = poly[i].lines->p1.x;
+//        p[1][0] = poly[i].lines->p1.y;
+//        findNewCoordinate(s, p);
+//        poly[i].lines->p1.x = p[0][0];
+//        poly[i].lines->p1.y = p[1][0];
+//
+//        p[0][0] = poly[i].lines->p2.x;
+//        p[1][0] = poly[i].lines->p2.y;
+//        findNewCoordinate(s, p);
+//        poly[i].lines->p2.x = p[0][0];
+//        poly[i].lines->p2.y = p[1][0];
+//    }
+//}
+
+//void R(long double alpha) {
+//    R_matrix[0][0] = cos(alpha);
+//    R_matrix[0][1] = -sin(alpha);
+//    R_matrix[0][2] = 0;
+//    R_matrix[1][0] = sin(alpha);
+//    R_matrix[1][1] = cos(alpha);
+//    R_matrix[1][2] = 0;
+//    R_matrix[2][0] = 0;
+//    R_matrix[2][1] = 0;
+//    R_matrix[2][2] = 1;
+//}
+
+POINT R(POINT P, int alpha){
+    P.x = P.x * cos(alpha) - P.y * sin(alpha);
+    P.y = P.x * sin(alpha) + P.y * cos(alpha);
+    return P;
+}
+
+void R_polygon(POLYGON *poly, int alpha) {
+    for (int i = 0; i < poly->nlines; i++) {
+        poly->lines[i].p1 = R(poly->lines[i].p1, alpha);
+        poly->lines[i].p2 = R(poly->lines[i].p2, alpha);
+    }
+}
+
+POINT T(POINT P, int Dx, int Dy) {
+    P.x += Dx;
+    P.y += Dy;
+    return P;
+}
+
+void T_polygon(POLYGON *poly, long double Dx, long double Dy) {
+    for (int i = 0; i < poly->nlines; i++) {
+        poly->lines[i].p1 = T(poly->lines[i].p1, Dx, Dy);
+        poly->lines[i].p2 = T(poly->lines[i].p2, Dx, Dy);
+    }
+}
+
+POINT S(POINT P, long double Sx, long double Sy) {
+    P.x *= Sx;
+    P.y *= Sy;
+    return P;
+}
+
+void S_polygon(POLYGON *poly, long double Sx, long double Sy) {
+    for (int i = 0; i < poly->nlines; i++) {
+        poly->lines[i].p1 = S(poly->lines[i].p1, Sx, Sy);
+        poly->lines[i].p2 = S(poly->lines[i].p2, Sx, Sy);
+    }
+}
+
+void plot(int x, int y) {
+    buffer[x][y] = global_color;
+}
+
+void set_color(double r, double g, double b) {
+    global_color.r = r;
+    global_color.g = g;
+    global_color.b = b;
+}
 
 void setLineValues(LINE line) {
     line.b = 0;
@@ -25,10 +135,12 @@ void setLineValues(LINE line) {
 POLYGON *NewPolygon() {
     POLYGON *np = (POLYGON *) malloc(sizeof(POLYGON));
     np->nlines = -1;
-    np->lines = (LINE *) malloc(50 * sizeof(LINE));
+    np->lines = (LINE *) malloc(sizeof(LINE) * 1000);
 }
 
 void AddPolygonLine(POLYGON *poly, int x, int y) {
+//    LINE *newLines = (LINE *) realloc(poly->lines, sizeof(LINE)*poly->nlines+1);
+//    poly->lines = newLines;
     if (poly->nlines == -1) {
         poly->lines[0].p1.x = x;
         poly->lines[0].p1.y = y;
@@ -46,24 +158,23 @@ void AddPolygonLine(POLYGON *poly, int x, int y) {
         setLineValues(poly->lines[poly->nlines]);
         poly->nlines++;
     }
-
 }
 
 void DrawPolygon(POLYGON *poly) {
     if (poly->nlines < 1) { return; }
     for (int i = 0; i < poly->nlines; i++) {
         bresenham(
-            poly->lines[i].p1.x,
-            poly->lines[i].p1.y,
-            poly->lines[i].p2.x,
-            poly->lines[i].p2.y
+                poly->lines[i].p1.x,
+                poly->lines[i].p1.y,
+                poly->lines[i].p2.x,
+                poly->lines[i].p2.y
         );
     }
     bresenham(
-        poly->lines[poly->nlines - 1].p2.x,
-        poly->lines[poly->nlines - 1].p2.y,
-        poly->lines[0].p1.x,
-        poly->lines[0].p1.y
+            poly->lines[poly->nlines - 1].p2.x,
+            poly->lines[poly->nlines - 1].p2.y,
+            poly->lines[0].p1.x,
+            poly->lines[0].p1.y
     );
 }
 
@@ -108,11 +219,11 @@ void PaintPolygon(POLYGON * poly){
 					}
 				}
 			}
-			
+
 		}
-		
+
 	}
-	
+
 	bresenham(poly->points[poly->npoints-1].x,poly->points[poly->npoints-1].y,poly->points[0].x,poly->points[0].y);
 }
 */
@@ -131,15 +242,47 @@ void MyKeyboardFunc(unsigned char Key, int x, int y) {
         case '2':
             tool = 2;
             break;
+        case '+':
+            S_polygon(poly, 1.1, 1.1);
+            break;
+        case '-':
+            S_polygon(poly, 0.9, 0.9);
+            break;
+        case 'i':
+            R_polygon(poly, 1);
+            break;
+        case 'j':
+            R_polygon(poly, -1);
+            break;
     };
+    glutPostRedisplay();
 }
+
+
+void SpecialInput(int key, int x, int y) {
+    switch (key) {
+        case GLUT_KEY_UP:
+            T_polygon(poly, 0, -10);
+            break;
+        case GLUT_KEY_DOWN:
+            T_polygon(poly, 0, 10);
+            break;
+        case GLUT_KEY_LEFT:
+            T_polygon(poly, -10, 0);
+            break;
+        case GLUT_KEY_RIGHT:
+            T_polygon(poly, 10, 0);
+            break;
+    };
+    glutPostRedisplay();
+}
+
 
 void myMouseFunc(int button, int state, int x, int y) {
     if (tool == 1) {
         if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
             lines[lineCount].p1.x = x;
             lines[lineCount].p1.y = y;
-
             glutPostRedisplay();
         }
 
@@ -150,13 +293,14 @@ void myMouseFunc(int button, int state, int x, int y) {
             lineCount++;
             glutPostRedisplay();
         }
+
+
     }
     if (tool == 2) {
         if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
             AddPolygonLine(poly, x, y);
             glutPostRedisplay();
         }
-
     }
 }
 
@@ -223,8 +367,7 @@ void bresenham(int x0, int y0, int x1, int y1) {
         }
     }
 
-    glBegin(GL_POINTS);
-    glVertex2i(Xp, Yp);
+    plot(Xp, Yp);
     while (Xp != x1 || Yp != y1) {
         if (d < 0) {
             Xp += Delta_AX;
@@ -235,51 +378,159 @@ void bresenham(int x0, int y0, int x1, int y1) {
             Yp += Delta_BY;
             d += Delta_B;
         }
-
-        glVertex2i(Xp, Yp);
+        plot(Xp, Yp);
     }
-    glEnd();
 }
 
-int max(int a, int b) {
-    (a > b) ? a : b;
+void clear_scene() {
+    int i, j;
+    for (i = 0; i < H_SIZE; i++) {
+        for (j = 0; j < V_SIZE; j++) {
+            buffer[i][j].r = 0;
+            buffer[i][j].g = 0;
+            buffer[i][j].b = 0;
+        }
+    }
+}
+
+void draw_scene() {
+    int i, j;
+
+    for (i = 0; i < H_SIZE; i++) {
+        for (j = 0; j < V_SIZE; j++) {
+            glColor3f(buffer[i][j].r, buffer[i][j].g, buffer[i][j].b);
+            glBegin(GL_POINTS);
+            glVertex2i(i, j);
+            glEnd();
+        }
+    }
+    glFlush();
 }
 
 void renderScene(void) {
-
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    glColor3f(1, 1, 1);
+    clear_scene();
 
     for (int i = 0; i < lineCount; ++i) {
         bresenham(lines[i].p1.x, lines[i].p1.y, lines[i].p2.x, lines[i].p2.y);
     }
 
     DrawPolygon(poly);
-
-    glutSwapBuffers();
+    draw_scene();
 }
 
 int main(int argc, char **argv) {
+    int i, j, length;
+
+    if (argc <= 1) {
+        printf("Debes ingresar mas parametros...\n");
+        return 1;
+    }
+
+    printf("Resolución: %s\n", argv[1]);
+    length = strlen(argv[1]);
+    for (i = 0; i < length; i++)
+        if (!isdigit(argv[1][i])) {
+            printf("Ingrese una resulución válida\n");
+            return 1;
+        }
+
+    // Set Res
+    sscanf(argv[1], "%d", &H_SIZE);
+    sscanf(argv[1], "%d", &V_SIZE);
+
+    buffer = (COLOR **) malloc(H_SIZE * sizeof(COLOR *));
+    for (i = 0; i < H_SIZE; i++) {
+        buffer[i] = (COLOR *) malloc(V_SIZE * sizeof(COLOR));
+    }
+
+    clear_scene();
+    set_color(1, 1, 1);
+
     init();
-    // init GLUT and create Window
     glutInit(&argc, argv);
-    glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
-    glutInitWindowPosition(0, 0);
-    glutInitWindowSize(500, 500);
-    glutCreateWindow("Lines");
+
+    // init GLUT and create Window
+    glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB);
+    glutInitWindowSize(H_SIZE, V_SIZE);
+    glutCreateWindow("Proyecto 1");
     glutMouseFunc(myMouseFunc);
     glutKeyboardFunc(MyKeyboardFunc);
+    glutSpecialFunc(SpecialInput);
 
     glClear(GL_COLOR_BUFFER_BIT);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluOrtho2D(0.0, 500.0, 500.0, 0.0);
+
+    gluOrtho2D(0.0, H_SIZE, V_SIZE, 0.0);
     // register callbacks
     glutDisplayFunc(renderScene);
+
+//    long double m1[2][2] = {1,2,3,4};
+//    long double m2[2][2] = {1,2,3,4};
+//
+//    int **result = mult_matrix(m1, (long double**)m2);
+//    printf("%d ", result[0][0]);
+
+
+//    for(i = 0; i<LEN(result); i++){
+//        for (j = 0; j < LEN(result[0]);
+//        j++){
+//            printf("%d ", result[i][j]);
+//        }
+//        printf("\n");
+//    }
+//    char* filename = "mapa.txt";
+//    FILE *fichero = fopen(filename, "r");
+//    printf("archivo abierto\n");
+//    char str[1024];
+
+//    char str2[1024];
+//
+//
+//    while (fscanf(fichero, "%s", str)!=EOF) {
+//        i = 0;
+//        fgets(str, 1024, fichero);
+//
+//        fichero = fopen(filename, "r");
+//        printf("archivo abierto\n");
+//
+//        while (fscanf(fichero, "%s", str2)!=EOF) {
+//            i = 0;
+//            fgets(str, 1024, fichero);
+//
+//            char delims[] = ",";
+//            char *result = NULL;
+//            result = strtok(str, delims);
+//
+//            while( result != NULL ) {
+//                printf("%s ", result);
+//                result = strtok(NULL, delims);
+//
+//                printf("%s ", result);
+//
+//                i++;
+//            }
+//            j++;
+//        }
+//    }
+
+
+
+
+
+
 
     // enter GLUT event processing cycle
     glutMainLoop();
 
+    printf("Fin del programa %s...\n\n", argv[0]);
+
+
+    return 1;
+
+//    glMatrixMode(GL_PROJECTION);
+//    glLoadIdentity();
+//    // register callbacks
+//
     return 1;
 }
