@@ -15,7 +15,7 @@
 #include <stdbool.h>
 #include <malloc.h>
 #include <GL/glut.h>
-
+#include <IL/il.h>
 #include "proyecto_1.h"
 
 int** findNewCoordinate(int s[][2], int p[][1])
@@ -73,6 +73,24 @@ int** findNewCoordinate(int s[][2], int p[][1])
 //    R_matrix[2][2] = 1;
 //}
 
+int** GT;
+int** PT;
+int** LT;
+int** AT;
+int** CT;
+int** SJT;
+int** HT;
+int textureId;
+int compare (const void * a, const void * b)
+{
+
+  POINT *orderA = (POINT *)a;
+  POINT *orderB = (POINT *)b;
+
+  return ( orderB->x - orderA->x );
+}
+
+
 POINT R(POINT P, int alpha){
     P.x = P.x * cos(alpha) - P.y * sin(alpha);
     P.y = P.x * sin(alpha) + P.y * cos(alpha);
@@ -113,7 +131,47 @@ void S_polygon(POLYGON *poly, long double Sx, long double Sy) {
 }
 
 void plot(int x, int y) {
-    buffer[x][y] = global_color;
+    switch(textureId){
+        case 0:
+            buffer[x][y] = global_color;
+            break;
+        case 1:
+            buffer[x][y].r = (float)GT[(y%255)*255 + x%255][0]/255.0;
+            buffer[x][y].g = (float)GT[(y%255)*255 + x%255][1]/255.0;
+            buffer[x][y].b = (float)GT[(y%255)*255 + x%255][2]/255.0;
+            break;
+        case 2:
+            buffer[x][y].r = (float)PT[(y%255)*255 + x%255][0]/255.0;
+            buffer[x][y].g = (float)PT[(y%255)*255 + x%255][1]/255.0;
+            buffer[x][y].b = (float)PT[(y%255)*255 + x%255][2]/255.0;
+            break;
+        case 3:
+            buffer[x][y].r = (float)LT[(y%255)*255 + x%255][0]/255.0;
+            buffer[x][y].g = (float)LT[(y%255)*255 + x%255][1]/255.0;
+            buffer[x][y].b = (float)LT[(y%255)*255 + x%255][2]/255.0;
+            break;
+        case 4:
+            buffer[x][y].r = (float)AT[(y%255)*255 + x%255][0]/255.0;
+            buffer[x][y].g = (float)AT[(y%255)*255 + x%255][1]/255.0;
+            buffer[x][y].b = (float)AT[(y%255)*255 + x%255][2]/255.0;
+            break;
+        case 5:
+            buffer[x][y].r = (float)CT[(y%255)*255 + x%255][0]/255.0;
+            buffer[x][y].g = (float)CT[(y%255)*255 + x%255][1]/255.0;
+            buffer[x][y].b = (float)CT[(y%255)*255 + x%255][2]/255.0;
+            break;
+        case 6:
+            buffer[x][y].r = (float)HT[(y%255)*255 + x%255][0]/255.0;
+            buffer[x][y].g = (float)HT[(y%255)*255 + x%255][1]/255.0;
+            buffer[x][y].b = (float)HT[(y%255)*255 + x%255][2]/255.0;
+            break;
+        case 7:
+            buffer[x][y].r = (float)SJT[(y%255)*255 + x%255][0]/255.0;
+            buffer[x][y].g = (float)SJT[(y%255)*255 + x%255][1]/255.0;
+            buffer[x][y].b = (float)SJT[(y%255)*255 + x%255][2]/255.0;
+            break;
+    }
+
 }
 
 void set_color(double r, double g, double b) {
@@ -122,14 +180,39 @@ void set_color(double r, double g, double b) {
     global_color.b = b;
 }
 
-void setLineValues(LINE line) {
-    line.b = 0;
-    line.m = 0;
+LINE setLineValues(LINE line) {
+    if(line.p1.y > line.p2.y){
+        int x = line.p1.x;
+        int y = line.p1.y;
+        line.p1.x = line.p2.x;
+        line.p1.y = line.p2.y;
+        line.p2.x = x;
+        line.p2.y = y;
+    }
+
+    //printLine(line);
+    if(line.p2.y == line.p1.y){
+        //printLine("y igual");
+        line.m = 0;
+    }else if (line.p2.x == line.p1.x){
+        //printLine("x igual");
+        line.m = 1;
+    }
+    else{
+        line.m = (float)((float)((float)line.p2.y - (float)line.p1.y)/(float)((float)line.p2.x - (float)line.p1.x));
+        //printf("m %f\n", line.m);
+    }
+
+
+    line.b = line.p1.y - line.m * line.p1.x;
+
     if (line.m != 0) {
-        line.delta = -1 / line.m;
+        line.delta = -1.0 / (float)line.m;
     } else {
         line.delta = 0;
     }
+    //printf("delta %f\n", line.delta);
+    return line;
 }
 
 POLYGON *NewPolygon() {
@@ -148,14 +231,34 @@ void AddPolygonLine(POLYGON *poly, int x, int y) {
     } else if (poly->nlines == 0) {
         poly->lines[0].p2.x = x;
         poly->lines[0].p2.y = y;
-        setLineValues(poly->lines[0]);
+        //poly->lines[0] = setLineValues(poly->lines[0]);
         poly->nlines++;
-    } else {
+    } else if (poly->nlines == 1) {
         poly->lines[poly->nlines].p1.x = poly->lines[poly->nlines - 1].p2.x;
         poly->lines[poly->nlines].p1.y = poly->lines[poly->nlines - 1].p2.y;
         poly->lines[poly->nlines].p2.x = x;
         poly->lines[poly->nlines].p2.y = y;
-        setLineValues(poly->lines[poly->nlines]);
+        //poly->lines[poly->nlines] = setLineValues(poly->lines[poly->nlines]);
+        poly->nlines++;
+
+        poly->lines[poly->nlines].p1.x = poly->lines[poly->nlines - 1].p2.x;
+        poly->lines[poly->nlines].p1.y = poly->lines[poly->nlines - 1].p2.y;
+        poly->lines[poly->nlines].p2.x = poly->lines[0].p1.x;
+        poly->lines[poly->nlines].p2.y = poly->lines[0].p1.y;
+        //poly->lines[poly->nlines] = setLineValues(poly->lines[poly->nlines]);
+        poly->nlines++;
+    }else {
+        poly->lines[poly->nlines-1].p1.x = poly->lines[poly->nlines - 2].p2.x;
+        poly->lines[poly->nlines-1].p1.y = poly->lines[poly->nlines - 2].p2.y;
+        poly->lines[poly->nlines-1].p2.x = x;
+        poly->lines[poly->nlines-1].p2.y = y;
+        //poly->lines[poly->nlines-1] = setLineValues(poly->lines[poly->nlines-1]);
+
+        poly->lines[poly->nlines].p1.x = poly->lines[poly->nlines - 1].p2.x;
+        poly->lines[poly->nlines].p1.y = poly->lines[poly->nlines - 1].p2.y;
+        poly->lines[poly->nlines].p2.x = poly->lines[0].p1.x;
+        poly->lines[poly->nlines].p2.y = poly->lines[0].p1.y;
+        //poly->lines[poly->nlines] = setLineValues(poly->lines[poly->nlines]);
         poly->nlines++;
     }
 }
@@ -170,67 +273,111 @@ void DrawPolygon(POLYGON *poly) {
                 poly->lines[i].p2.y
         );
     }
-    bresenham(
-            poly->lines[poly->nlines - 1].p2.x,
-            poly->lines[poly->nlines - 1].p2.y,
-            poly->lines[0].p1.x,
-            poly->lines[0].p1.y
-    );
+}
+void printLine(LINE line){
+    printf("p1 %d %d p2 %d %d \n", line.p1.x,line.p1.y,line.p2.x,line.p2.y);
 }
 
-/*
 void PaintPolygon(POLYGON * poly){
-	if(poly->npoints < 2){return;}
+	if(poly->nlines < 2){return;}
+
+    LINE auxLines[poly->nlines];
+
 	int initialy = 100000000;
 	int finaly = -100000000;
-	int highpoint, lowpoint;
+	POINT intersections[50];
+    int nIntersections = 0;
 	POINT p1,p2;
-	bool secondPoint = false;
 
-	bool lineState[poly->npoints];
-	for(int i = 0; i < poly->npoints; i++){
-		lineState[i] = false;
-		if(poly->points[i].y < initialy) initialy = poly->points[i].y;
-		if(poly->points[i].y > finaly) finaly = poly->points[i].y;
+	int lineState[poly->nlines];
+	for(int i = 0; i < poly->nlines; i++){
+        auxLines[i] = setLineValues(poly->lines[i]);
+
+		lineState[i] = 0;
+		if(auxLines[i].p1.y < initialy) initialy = auxLines[i].p1.y;
+		if(auxLines[i].p2.y > finaly) finaly = auxLines[i].p2.y;
 	}
+
+
+
 	for(int i = initialy ; i <= finaly; i++){
-		for(int j = 0; j< poly->npoints; j++){
-			if(poly->points[j].y != poly->points[(j+1)%poly->npoints].y){
-				highpoint = (poly->points[j].y > poly->points[(j+1)%poly->npoints].y)?j:(j+1)%poly->npoints;
-				lowpoint = (poly->points[j].y <= poly->points[(j+1)%poly->npoints].y)?j:(j+1)%poly->npoints;
+        nIntersections = 0;
 
-				if(poly->points[highpoint].y == i){
-					lineState[j] = true;
-				}
-				if(poly->points[lowpoint].y == i-1){
-					lineState[j] = false;
-				}
+        for(int j = 0; j < poly->nlines; j++){
+            if(auxLines[j].p1.y != auxLines[j].p2.y){
+                if(auxLines[j].p1.y == i){
+                    //printf("y = %d  una linea activada\n", i);
+                    lineState[j] = 2;
+                }else if(auxLines[j].p2.y == i){
+                    lineState[j] = 3;
+                }else if (auxLines[j].p1.y < i) {
+                    lineState[j] = 1;
+                }
+                if(auxLines[j].p2.y < i){
+                    //printf("y = %d  una linea desactivada\n", i);
+                    lineState[j] = 0;
+                }
 
-				if(lineState[j] == true){
-					if(secondPoint){
-						p2.x = 0;
-						p2.y = i;
-						secondPoint = false;
+            }
+        }
 
-					}else{
-						p1.x = 0;
-						p1.y = i;
-						secondPoint = true;
-					}
-				}
-			}
+        int l = 0;
+        int k = 0;
 
-		}
+        while(l < poly->nlines){
+            if(lineState[l] > 1){
+                k = l+1;
+                while(k < poly->nlines){
+                    if(lineState[k] > 1 && l != k){
+
+                        if(lineState[l] == 2 && lineState[k] == 3){
+                            if(auxLines[l].p1.x == auxLines[k].p2.x){
+                                lineState[k] = 0;
+                            }
+                        }else if(lineState[l] == 3 && lineState[k] == 2){
+                            if(auxLines[l].p2.x == auxLines[k].p1.x){
+                                lineState[k] = 0;
+                            }
+                        }
+                    }
+                    k++;
+                }
+            }
+            l++;
+        }
+
+		for(int j = 0; j < poly->nlines; j++){
+
+            if(lineState[j] > 0){
+                //printf("%d\n", j);
+                intersections[nIntersections].x = round(auxLines[j].p1.x - (i - auxLines[j].p1.y) * auxLines[j].delta);
+                intersections[nIntersections].y = i;
+
+                //printf("x %d y %d\n",intersections[nIntersections].x,intersections[nIntersections].y);
+                nIntersections++;
+            }
+
+        }
+        //printf("y = %d  numero de intersecciones %d\n", i , nIntersections );
+        qsort( intersections, nIntersections, sizeof(POINT), compare );
+
+        for (int j = 1; j < nIntersections; j+=2)
+        {
+
+            bresenham(intersections[j-1].x,intersections[j-1].y,intersections[j].x,intersections[j].y);
+
+        }
 
 	}
 
-	bresenham(poly->points[poly->npoints-1].x,poly->points[poly->npoints-1].y,poly->points[0].x,poly->points[0].y);
+
 }
-*/
+
 
 void init() {
+    textureId = 1;
     lineCount = 0;
-    tool = 1;
+    tool = 2;
 
     polygons[0] = polyCartago = NewPolygon();
     polygons[1] = polyGuanacaste = NewPolygon();
@@ -242,8 +389,6 @@ void init() {
     polygons[7] = polyPuntarenas1 = NewPolygon();
     polygons[8] = poly = NewPolygon();
 }
-
-
 
 void MyKeyboardFunc(unsigned char Key, int x, int y) {
     switch (Key) {
@@ -432,12 +577,175 @@ void renderScene(void) {
     }
 
     DrawPolygons();
+    PaintPolygon(poly);
     draw_scene();
+}
+
+void initTextures(){
+    FILE *streamIn;
+
+    int byte,i;
+
+    //Guanacaste
+
+    streamIn = fopen("./GT.tga", "r");
+    if (streamIn == (FILE *)0){
+        printf("File opening error ocurred. Exiting program.\n");
+        exit(0);
+    }
+
+    GT = malloc(255*255 * sizeof(int*));
+
+
+
+
+    for(i=0;i<18;i++) byte = getc(streamIn);
+    for(i=0;i<255*255;i++){    // foreach pixel
+        GT[i] = malloc(3*sizeof(int));
+        GT[i][2] = getc(streamIn);  // use BMP 24bit with no alpha channel
+        GT[i][1] = getc(streamIn);  // BMP uses BGR but we want RGB, grab byte-by-byte
+        GT[i][0] = getc(streamIn);  // reverse-order array indexing fixes RGB issue...
+
+    }
+
+    //Puntarenas
+
+    streamIn = fopen("./PT.tga", "r");
+    if (streamIn == (FILE *)0){
+        printf("File opening error ocurred. Exiting program.\n");
+        exit(0);
+    }
+
+    PT = malloc(255*255 * sizeof(int*));
+
+
+
+
+    for(i=0;i<18;i++) byte = getc(streamIn);
+    for(i=0;i<255*255;i++){    // foreach pixel
+        PT[i] = malloc(3*sizeof(int));
+        PT[i][2] = getc(streamIn);  // use BMP 24bit with no alpha channel
+        PT[i][1] = getc(streamIn);  // BMP uses BGR but we want RGB, grab byte-by-byte
+        PT[i][0] = getc(streamIn);  // reverse-order array indexing fixes RGB issue...
+
+    }
+
+    //Limon
+
+    streamIn = fopen("./LT.tga", "r");
+    if (streamIn == (FILE *)0){
+        printf("File opening error ocurred. Exiting program.\n");
+        exit(0);
+    }
+
+    LT = malloc(255*255 * sizeof(int*));
+
+
+
+
+    for(i=0;i<18;i++) byte = getc(streamIn);
+    for(i=0;i<255*255;i++){    // foreach pixel
+        LT[i] = malloc(3*sizeof(int));
+        LT[i][2] = getc(streamIn);  // use BMP 24bit with no alpha channel
+        LT[i][1] = getc(streamIn);  // BMP uses BGR but we want RGB, grab byte-by-byte
+        LT[i][0] = getc(streamIn);  // reverse-order array indexing fixes RGB issue...
+
+    }
+
+    //Alajuela
+
+    streamIn = fopen("./AT.tga", "r");
+    if (streamIn == (FILE *)0){
+        printf("File opening error ocurred. Exiting program.\n");
+        exit(0);
+    }
+
+    AT = malloc(255*255 * sizeof(int*));
+
+
+
+
+    for(i=0;i<18;i++) byte = getc(streamIn);
+    for(i=0;i<255*255;i++){    // foreach pixel
+        AT[i] = malloc(3*sizeof(int));
+        AT[i][2] = getc(streamIn);  // use BMP 24bit with no alpha channel
+        AT[i][1] = getc(streamIn);  // BMP uses BGR but we want RGB, grab byte-by-byte
+        AT[i][0] = getc(streamIn);  // reverse-order array indexing fixes RGB issue...
+
+    }
+
+    //Guanacaste
+
+    streamIn = fopen("./SJT.tga", "r");
+    if (streamIn == (FILE *)0){
+        printf("File opening error ocurred. Exiting program.\n");
+        exit(0);
+    }
+
+    SJT = malloc(255*255 * sizeof(int*));
+
+
+
+
+    for(i=0;i<18;i++) byte = getc(streamIn);
+    for(i=0;i<255*255;i++){    // foreach pixel
+        SJT[i] = malloc(3*sizeof(int));
+        SJT[i][2] = getc(streamIn);  // use BMP 24bit with no alpha channel
+        SJT[i][1] = getc(streamIn);  // BMP uses BGR but we want RGB, grab byte-by-byte
+        SJT[i][0] = getc(streamIn);  // reverse-order array indexing fixes RGB issue...
+
+    }
+
+    //Cartago
+
+    streamIn = fopen("./CT.tga", "r");
+    if (streamIn == (FILE *)0){
+        printf("File opening error ocurred. Exiting program.\n");
+        exit(0);
+    }
+
+    CT = malloc(255*255 * sizeof(int*));
+
+
+
+
+    for(i=0;i<18;i++) byte = getc(streamIn);
+    for(i=0;i<255*255;i++){    // foreach pixel
+        CT[i] = malloc(3*sizeof(int));
+        CT[i][2] = getc(streamIn);  // use BMP 24bit with no alpha channel
+        CT[i][1] = getc(streamIn);  // BMP uses BGR but we want RGB, grab byte-by-byte
+        CT[i][0] = getc(streamIn);  // reverse-order array indexing fixes RGB issue...
+
+    }
+
+    //Heredia
+
+    streamIn = fopen("./HT.tga", "r");
+    if (streamIn == (FILE *)0){
+        printf("File opening error ocurred. Exiting program.\n");
+        exit(0);
+    }
+
+    HT = malloc(255*255 * sizeof(int*));
+
+
+
+
+    for(i=0;i<18;i++) byte = getc(streamIn);
+    for(i=0;i<255*255;i++){    // foreach pixel
+        HT[i] = malloc(3*sizeof(int));
+        HT[i][2] = getc(streamIn);  // use BMP 24bit with no alpha channel
+        HT[i][1] = getc(streamIn);  // BMP uses BGR but we want RGB, grab byte-by-byte
+        HT[i][0] = getc(streamIn);  // reverse-order array indexing fixes RGB issue...
+
+    }
 }
 
 int main(int argc, char **argv) {
     int i, j, length;
 
+
+    initTextures();
     if (argc <= 1) {
         printf("Debes ingresar mas parametros...\n");
         return 1;
@@ -542,11 +850,6 @@ int main(int argc, char **argv) {
     printf("Fin del programa %s...\n\n", argv[0]);
 
 
-    return 1;
 
-//    glMatrixMode(GL_PROJECTION);
-//    glLoadIdentity();
-//    // register callbacks
-//
     return 1;
 }

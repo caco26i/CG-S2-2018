@@ -31,9 +31,9 @@ typedef struct {
 typedef struct {
     POINT p1;
     POINT p2;
-    int m;
-    int b;
-    int delta;
+    float m;
+    float b;
+    float delta;
 } LINE;
 
 typedef struct {
@@ -71,4 +71,4 @@ long double R_matrix[3][3];
 void bresenham(int, int, int, int);
 void draw_scene();
 void renderScene();
-
+LINE setLineValues(LINE);
