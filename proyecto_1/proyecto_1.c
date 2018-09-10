@@ -18,22 +18,22 @@
 
 #include "proyecto_1.h"
 
-//int** findNewCoordinate(int s[][2], int p[][1])
-//{
-//    int temp[2][1] = { 0 };
-//
-//    for (int i = 0; i < 2; i++)
-//        for (int j = 0; j < 1; j++)
-//            for (int k = 0; k < 2; k++)
-//                temp[i][j] += (s[i][k] * p[k][j]);
-//
-//    p[0][0] = temp[0][0];
-//    p[1][0] = temp[1][0];
-//
-//    return p;
-//}
-//
-//// Scaling the Polygon
+int** findNewCoordinate(int s[][2], int p[][1])
+{
+    int temp[2][1] = { 0 };
+
+    for (int i = 0; i < 2; i++)
+        for (int j = 0; j < 1; j++)
+            for (int k = 0; k < 2; k++)
+                temp[i][j] += (s[i][k] * p[k][j]);
+
+    p[0][0] = temp[0][0];
+    p[1][0] = temp[1][0];
+
+    return p;
+}
+
+// Scaling the Polygon
 //void scale(POLYGON *poly, float sx, float sy)
 //{
 //    // Initializing the Scaling Matrix.
@@ -135,7 +135,7 @@ void setLineValues(LINE line) {
 POLYGON *NewPolygon() {
     POLYGON *np = (POLYGON *) malloc(sizeof(POLYGON));
     np->nlines = -1;
-    np->lines = (LINE *) malloc(sizeof(LINE) * 1000);
+    np->lines = (LINE *) malloc(sizeof(LINE) * 10000); //puntos
 }
 
 void AddPolygonLine(POLYGON *poly, int x, int y) {
@@ -231,8 +231,19 @@ void PaintPolygon(POLYGON * poly){
 void init() {
     lineCount = 0;
     tool = 1;
-    poly = NewPolygon();
+
+    polygons[0] = polyCartago = NewPolygon();
+    polygons[1] = polyGuanacaste = NewPolygon();
+    polygons[2] = polyHeredia = NewPolygon();
+    polygons[3] = polyLimon = NewPolygon();
+    polygons[4] = polySanJose = NewPolygon();
+    polygons[5] = polyAlajuela = NewPolygon();
+    polygons[6] = polyPuntarenas = NewPolygon();
+    polygons[7] = polyPuntarenas1 = NewPolygon();
+    polygons[8] = poly = NewPolygon();
 }
+
+
 
 void MyKeyboardFunc(unsigned char Key, int x, int y) {
     switch (Key) {
@@ -407,6 +418,12 @@ void draw_scene() {
     glFlush();
 }
 
+void DrawPolygons(){
+    for (int i = 0; i < LEN(polygons); ++i) {
+        DrawPolygon(polygons[i]);
+    }
+}
+
 void renderScene(void) {
     clear_scene();
 
@@ -414,7 +431,7 @@ void renderScene(void) {
         bresenham(lines[i].p1.x, lines[i].p1.y, lines[i].p2.x, lines[i].p2.y);
     }
 
-    DrawPolygon(poly);
+    DrawPolygons();
     draw_scene();
 }
 
@@ -465,59 +482,58 @@ int main(int argc, char **argv) {
     // register callbacks
     glutDisplayFunc(renderScene);
 
-//    long double m1[2][2] = {1,2,3,4};
-//    long double m2[2][2] = {1,2,3,4};
+//    int m2[2][1] = {1,2};
+//    int m1[2][2] = {1,2,3,4};
 //
-//    int **result = mult_matrix(m1, (long double**)m2);
+//    int **result = findNewCoordinate(m1, m2);
 //    printf("%d ", result[0][0]);
 
+    FILE *file;
 
-//    for(i = 0; i<LEN(result); i++){
-//        for (j = 0; j < LEN(result[0]);
-//        j++){
-//            printf("%d ", result[i][j]);
-//        }
-//        printf("\n");
-//    }
-//    char* filename = "mapa.txt";
-//    FILE *fichero = fopen(filename, "r");
-//    printf("archivo abierto\n");
-//    char str[1024];
+    char* rutas[] = {
+            "mapas/cartago.txt",
+            "mapas/guanacaste.txt",
+            "mapas/heredia.txt",
+            "mapas/limon.txt",
+            "mapas/sanjose.txt",
+            "mapas/alajuela.txt",
+            "mapas/puntarenas.txt",
+            "mapas/puntarenas1.txt",
+    };
+    for (int k = 0; k <  LEN(rutas); ++k) {
+        file = fopen(rutas[k], "r");
+        int x;
+        int y;
 
-//    char str2[1024];
-//
-//
-//    while (fscanf(fichero, "%s", str)!=EOF) {
-//        i = 0;
-//        fgets(str, 1024, fichero);
-//
-//        fichero = fopen(filename, "r");
-//        printf("archivo abierto\n");
-//
-//        while (fscanf(fichero, "%s", str2)!=EOF) {
-//            i = 0;
-//            fgets(str, 1024, fichero);
-//
-//            char delims[] = ",";
-//            char *result = NULL;
-//            result = strtok(str, delims);
-//
-//            while( result != NULL ) {
-//                printf("%s ", result);
-//                result = strtok(NULL, delims);
-//
-//                printf("%s ", result);
-//
-//                i++;
-//            }
-//            j++;
-//        }
-//    }
+        i = 0;
+        char line[4098];
+        while (fgets(line, 4098, file))
+        {
+            // double row[ssParams->nreal + 1];
+            char* tmp = strdup(line);
+
+            int j = 0;
+            const char* tok;
+            for (tok = strtok(line, ","); tok && *tok; j++, tok = strtok(NULL, "\t\n"))
+            {
+                if(j == 0) x = atoi(tok);
+                else y = atoi(tok);
+            }
 
 
+            if(i%1 == 0) {
+                printf("%d - %d,%d", k, x, y);
+                printf("\n");
+                AddPolygonLine(polygons[k], x, y);
+            }
 
+            free(tmp);
+            i++;
+        }
+        T_polygon(polygons[k], 50, 75);
+        S_polygon(polygons[k], 1.2, 1.2);
 
-
+    }
 
 
     // enter GLUT event processing cycle

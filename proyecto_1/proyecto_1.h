@@ -41,6 +41,11 @@ typedef struct {
     LINE *lines;
 } POLYGON;
 
+typedef struct {
+    int npolygons;
+    POLYGON *polygon;
+} POLYGONS;
+
 COLOR **buffer;
 COLOR global_color;
 
@@ -49,7 +54,17 @@ int H_SIZE, V_SIZE;
 LINE lines[1000];
 int lineCount;
 int tool;
+
 POLYGON *poly;
+POLYGON *polySanJose;
+POLYGON *polyHeredia;
+POLYGON *polyAlajuela;
+POLYGON *polyGuanacaste;
+POLYGON *polyCartago;
+POLYGON *polyPuntarenas;
+POLYGON *polyPuntarenas1;
+POLYGON *polyLimon;
+POLYGON *polygons[9];
 
 long double R_matrix[3][3];
 
