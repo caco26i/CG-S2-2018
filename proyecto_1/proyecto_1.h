@@ -65,6 +65,7 @@ POLYGON *polyPuntarenas;
 POLYGON *polyPuntarenas1;
 POLYGON *polyLimon;
 POLYGON *polygons[9];
+POLYGON *polygonsAux[9];
 
 long double R_matrix[3][3];
 
