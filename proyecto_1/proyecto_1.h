@@ -65,10 +65,14 @@ POLYGON *polyPuntarenas;
 POLYGON *polyPuntarenas1;
 POLYGON *polyLimon;
 POLYGON *polygons[9];
+POLYGON *polygonsAux[9];
 
 long double R_matrix[3][3];
 
 void bresenham(int, int, int, int);
+
 void draw_scene();
+
 void renderScene();
+
 LINE setLineValues(LINE);
