@@ -1,7 +1,8 @@
 OBJECTS=proyecto_1.o
 OUTPUT=proyecto_1
 
-LDLIBS=-lX11 -lglut -lGLU -lGL -lm -lIL
+LDLIBS=-lX11 -lglut -lGLU -lGL -lm
+#-lIL
 
 $(OUTPUT): $(OBJECTS)
 	cc -o $(OUTPUT) $(OBJECTS) $(LDLIBS) 

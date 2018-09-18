@@ -18,6 +18,10 @@
 #include <IL/il.h>
 #include "proyecto_1.h"
 
+int Xc = 500;
+int Yc = 500;
+int r = 1;
+
 int **findNewCoordinate(int s[][2], int p[][1]) {
     int temp[2][1] = {0};
 
@@ -32,45 +36,7 @@ int **findNewCoordinate(int s[][2], int p[][1]) {
     return p;
 }
 
-// Scaling the Polygon
-//void scale(POLYGON *poly, float sx, float sy)
-//{
-//    // Initializing the Scaling Matrix.
-//    int s[2][2] = {
-//            {sx, 0,},
-//            {0, sy}
-//    };
-//
-//    int p[2][1];
-//
-//    // Scaling the triangle
-//    for (int i = 0; i < poly->nlines; i++)
-//    {
-//        p[0][0] = poly[i].lines->p1.x;
-//        p[1][0] = poly[i].lines->p1.y;
-//        findNewCoordinate(s, p);
-//        poly[i].lines->p1.x = p[0][0];
-//        poly[i].lines->p1.y = p[1][0];
-//
-//        p[0][0] = poly[i].lines->p2.x;
-//        p[1][0] = poly[i].lines->p2.y;
-//        findNewCoordinate(s, p);
-//        poly[i].lines->p2.x = p[0][0];
-//        poly[i].lines->p2.y = p[1][0];
-//    }
-//}
-
-//void R(long double alpha) {
-//    R_matrix[0][0] = cos(alpha);
-//    R_matrix[0][1] = -sin(alpha);
-//    R_matrix[0][2] = 0;
-//    R_matrix[1][0] = sin(alpha);
-//    R_matrix[1][1] = cos(alpha);
-//    R_matrix[1][2] = 0;
-//    R_matrix[2][0] = 0;
-//    R_matrix[2][1] = 0;
-//    R_matrix[2][2] = 1;
-//}
+float Tx, Ty, alpha, Sx, Sy;
 
 float **GT;
 float **PT;
@@ -82,28 +48,6 @@ float **HT;
 float **SEA;
 int textureId;
 int drawType;
-
-int compare(const void *a, const void *b) {
-
-    POINT *orderA = (POINT *) a;
-    POINT *orderB = (POINT *) b;
-
-    return (orderB->x - orderA->x);
-}
-
-
-POINT R(POINT P, int alpha) {
-    P.x = P.x * cos(alpha) - P.y * sin(alpha);
-    P.y = P.x * sin(alpha) + P.y * cos(alpha);
-    return P;
-}
-
-void R_polygon(POLYGON *poly, int alpha) {
-    for (int i = 0; i < poly->nlines; i++) {
-        poly->lines[i].p1 = R(poly->lines[i].p1, alpha);
-        poly->lines[i].p2 = R(poly->lines[i].p2, alpha);
-    }
-}
 
 POINT T(POINT P, int Dx, int Dy) {
     P.x += Dx;
@@ -118,20 +62,50 @@ void T_polygon(POLYGON *poly, long double Dx, long double Dy) {
     }
 }
 
-POINT S(POINT P, long double Sx, long double Sy) {
+int compare(const void *a, const void *b) {
+
+    POINT *orderA = (POINT *) a;
+    POINT *orderB = (POINT *) b;
+
+    return (orderA->x - orderB->x);
+}
+
+
+POINT R(POINT P, float alpha) {
+    int px = P.x;
+    int py = P.y;
+    P.x = (float) px * (float) cos(alpha) - (float) py * (float) sin(alpha);
+    P.y = (float) px * (float) sin(alpha) + (float) py * (float) cos(alpha);
+    return P;
+}
+
+void R_polygon(POLYGON *poly, float alpha) {
+    T_polygon(poly, -Xc, -Yc);
+
+    for (int i = 0; i < poly->nlines; i++) {
+        poly->lines[i].p1 = R(poly->lines[i].p1, alpha);
+        poly->lines[i].p2 = R(poly->lines[i].p2, alpha);
+    }
+    T_polygon(poly, Xc, Yc);
+}
+
+
+POINT S(POINT P, float Sx, float Sy) {
     P.x *= Sx;
     P.y *= Sy;
     return P;
 }
 
-void S_polygon(POLYGON *poly, long double Sx, long double Sy) {
+void S_polygon(POLYGON *poly, float Sx, float Sy) {
+    T_polygon(poly, -Xc, -Yc);
     for (int i = 0; i < poly->nlines; i++) {
         poly->lines[i].p1 = S(poly->lines[i].p1, Sx, Sy);
         poly->lines[i].p2 = S(poly->lines[i].p2, Sx, Sy);
     }
+    T_polygon(poly, Xc, Yc);
 }
 
-void R_db(int alpha) {
+void R_db(float alpha) {
     for (int i = 0; i < LEN(polygons);
     ++i) {
         R_polygon(polygons[i], alpha);
@@ -139,6 +113,7 @@ void R_db(int alpha) {
 }
 
 void T_db(long double Dx, long double Dy) {
+
     for (int i = 0; i < LEN(polygons);
     ++i) {
         T_polygon(polygons[i], Dx, Dy);
@@ -146,6 +121,7 @@ void T_db(long double Dx, long double Dy) {
 }
 
 void S_db(long double Sx, long double Sy) {
+    //printf("Sx %d Sy %d\n",Sx,Sy );
     for (int i = 0; i < LEN(polygons);
     ++i) {
         S_polygon(polygons[i], Sx, Sy);
@@ -153,7 +129,7 @@ void S_db(long double Sx, long double Sy) {
 }
 
 void plot(int x, int y) {
-
+    if (x < 0 || y < 0 || x > H_SIZE - 1 || y > V_SIZE - 1)return;
 
     int tpos = (y % 255) * 255 + x % 255;
 
@@ -201,6 +177,9 @@ void plot(int x, int y) {
             buffer[x][y].g = (float) SJT[tpos][1];
             buffer[x][y].b = (float) SJT[tpos][2];
             break;
+        default:
+            buffer[x][y] = global_color;
+            break;
 
     }
 
@@ -225,10 +204,10 @@ LINE setLineValues(LINE line) {
     //printLine(line);
     if (line.p2.y == line.p1.y) {
         //printLine("y igual");
-        line.m = 0;
+        line.m = 1;
     } else if (line.p2.x == line.p1.x) {
         //printLine("x igual");
-        line.m = 1;
+        line.m = 0;
     } else {
         line.m = (float) ((float) ((float) line.p2.y - (float) line.p1.y) /
                           (float) ((float) line.p2.x - (float) line.p1.x));
@@ -300,6 +279,7 @@ void AddPolygonLine(POLYGON *poly, int x, int y) {
 void DrawPolygon(POLYGON *poly) {
     if (poly->nlines < 1) { return; }
     for (int i = 0; i < poly->nlines; i++) {
+        set_color(0, 0, 0);
         bresenham(
                 poly->lines[i].p1.x,
                 poly->lines[i].p1.y,
@@ -333,16 +313,19 @@ void PaintPolygon(POLYGON *poly) {
         if (auxLines[i].p2.y > finaly) finaly = auxLines[i].p2.y;
     }
 
+    int vertex = 0;
 
     for (int i = initialy; i <= finaly; i++) {
         nIntersections = 0;
-
+        vertex = 0;
         for (int j = 0; j < poly->nlines; j++) {
             if (auxLines[j].p1.y != auxLines[j].p2.y) {
-                if (auxLines[j].p1.y == i) {
+                if (auxLines[j].p1.y == i) { //punto arriba
                     //printf("y = %d  una linea activada\n", i);
+                    vertex++;
                     lineState[j] = 2;
-                } else if (auxLines[j].p2.y == i) {
+                } else if (auxLines[j].p2.y == i) { // punto abajo
+                    vertex++;
                     lineState[j] = 3;
                 } else if (auxLines[j].p1.y < i) {
                     lineState[j] = 1;
@@ -352,39 +335,134 @@ void PaintPolygon(POLYGON *poly) {
                     lineState[j] = 0;
                 }
 
+            } else {
+                if (auxLines[j].p1.y == i) {
+                    lineState[j] = -1;
+                    vertex += 2;
+
+                }
             }
         }
 
-        int l = 0;
-        int k = 0;
 
-        while (l < poly->nlines) {
-            if (lineState[l] > 1) {
-                k = l + 1;
-                while (k < poly->nlines) {
-                    if (lineState[k] > 1 && l != k) {
+        //arreglar codos y rodillas y gradas
 
-                        if (lineState[l] == 2 && lineState[k] == 3) {
-                            if (auxLines[l].p1.x == auxLines[k].p2.x) {
-                                lineState[k] = 0;
-                            }
-                        } else if (lineState[l] == 3 && lineState[k] == 2) {
-                            if (auxLines[l].p2.x == auxLines[k].p1.x) {
-                                lineState[k] = 0;
-                            }
-                        }
+        if (vertex > 1) {
+            for (int l = 1; l < poly->nlines; ++l) {
+                if (lineState[l - 1] == 2 && lineState[l] == 3) {
+                    if (auxLines[l - 1].p1.x == auxLines[l].p2.x) {
+                        intersections[nIntersections].x = auxLines[l - 1].p1.x;
+                        intersections[nIntersections].y = i;
+
+                        //printf("x %d y %d\n",intersections[nIntersections].x,intersections[nIntersections].y);
+                        nIntersections++;
+
+                        lineState[l] = 0;
+                        lineState[l - 1] = 0;
+
                     }
-                    k++;
+                } else if (lineState[l - 1] == 3 && lineState[l] == 2) {
+                    if (auxLines[l - 1].p2.x == auxLines[l].p1.x) {
+                        intersections[nIntersections].x = auxLines[l - 1].p2.x;
+                        intersections[nIntersections].y = i;
+
+                        //printf("x %d y %d\n",intersections[nIntersections].x,intersections[nIntersections].y);
+                        nIntersections++;
+
+                        lineState[l] = 0;
+                        lineState[l - 1] = 0;
+
+                    }
+                } else if (lineState[l - 1] == 3 && lineState[l] == 3) {
+                    if (auxLines[l - 1].p2.x == auxLines[l].p2.x) {
+                        intersections[nIntersections].x = auxLines[l - 1].p2.x;
+                        intersections[nIntersections].y = i - 1;
+
+                        //printf("x %d y %d\n",intersections[nIntersections].x,intersections[nIntersections].y);
+                        nIntersections++;
+                        intersections[nIntersections].x = auxLines[l - 1].p1.x;
+                        intersections[nIntersections].y = i - 1;
+
+                        //printf("x %d y %d\n",intersections[nIntersections].x,intersections[nIntersections].y);
+                        nIntersections++;
+                        lineState[l] = 0;
+                        lineState[l - 1] = 0;
+
+                    }
+                } else if (lineState[l - 1] == 2 && lineState[l] == 2) {
+                    if (auxLines[l - 1].p1.x == auxLines[l].p1.x) {
+                        intersections[nIntersections].x = auxLines[l - 1].p1.x;
+                        intersections[nIntersections].y = i;
+
+                        //printf("x %d y %d\n",intersections[nIntersections].x,intersections[nIntersections].y);
+                        nIntersections++;
+                        intersections[nIntersections].x = auxLines[l - 1].p1.x;
+                        intersections[nIntersections].y = i;
+
+                        //printf("x %d y %d\n",intersections[nIntersections].x,intersections[nIntersections].y);
+                        nIntersections++;
+                        lineState[l] = 0;
+                        lineState[l - 1] = 0;
+
+                    }
+                } else if ((lineState[l] == -1 && lineState[l - 1] == 2 && lineState[l + 1] == 2) ||
+                           (lineState[l - 1] == -1 && lineState[l - 1] == 3 && lineState[l + 1] == 3)) {
+                    lineState[l] = 0;
+                    lineState[l - 1] = 0;
+                    lineState[l + 1] = 0;
+                    //printf("%d\n", j);
+                    intersections[nIntersections].x = auxLines[l].p1.x;
+                    intersections[nIntersections].y = i;
+
+                    //printf("x %d y %d\n",intersections[nIntersections].x,intersections[nIntersections].y);
+                    nIntersections++;
+                    //printf("%d\n", j);
+                    intersections[nIntersections].x = auxLines[l].p2.x;
+                    intersections[nIntersections].y = i;
+
+                    //printf("x %d y %d\n",intersections[nIntersections].x,intersections[nIntersections].y);
+                    nIntersections++;
+                } else if ((lineState[l] == -1 && lineState[l - 1] == 3 && lineState[l + 1] == 2) ||
+                           (lineState[l] == -1 && lineState[l - 1] == 2 && lineState[l + 1] == 3)) {
+                    lineState[l] = 0;
+                    lineState[l - 1] = 0;
+                    lineState[l + 1] = 0;
+                    //printf("%d\n", j);
+                    intersections[nIntersections].x = auxLines[l].p1.x;
+                    intersections[nIntersections].y = i - 1;
+
+                    //printf("x %d y %d\n",intersections[nIntersections].x,intersections[nIntersections].y);
+                    nIntersections++;
+                    //printf("%d\n", j);
+                    intersections[nIntersections].x = auxLines[l].p1.x;
+                    intersections[nIntersections].y = i - 1;
+
+                    //printf("x %d y %d\n",intersections[nIntersections].x,intersections[nIntersections].y);
+                    nIntersections++;
+                    //printf("%d\n", j);
+                    intersections[nIntersections].x = auxLines[l].p2.x;
+                    intersections[nIntersections].y = i - 1;
+
+                    //printf("x %d y %d\n",intersections[nIntersections].x,intersections[nIntersections].y);
+                    nIntersections++;
+                    //printf("%d\n", j);
+                    intersections[nIntersections].x = auxLines[l].p2.x;
+                    intersections[nIntersections].y = i - 1;
+
+                    //printf("x %d y %d\n",intersections[nIntersections].x,intersections[nIntersections].y);
+                    nIntersections++;
                 }
+
             }
-            l++;
+
         }
 
         for (int j = 0; j < poly->nlines; j++) {
 
-            if (lineState[j] > 0) {
+            if (lineState[j] == 1) {
                 //printf("%d\n", j);
-                intersections[nIntersections].x = round(auxLines[j].p1.x - (i - auxLines[j].p1.y) * auxLines[j].delta);
+                intersections[nIntersections].x = round(
+                        (float) auxLines[j].p1.x - (float) (i - auxLines[j].p1.y) * (float) auxLines[j].delta);
                 intersections[nIntersections].y = i;
 
                 //printf("x %d y %d\n",intersections[nIntersections].x,intersections[nIntersections].y);
@@ -396,7 +474,20 @@ void PaintPolygon(POLYGON *poly) {
         qsort(intersections, nIntersections, sizeof(POINT), compare);
 
         for (int j = 1; j < nIntersections; j += 2) {
-            bresenham(intersections[j - 1].x, intersections[j - 1].y, intersections[j].x, intersections[j].y);
+            if ((intersections[j - 1].y != i && intersections[j].y != i) &&
+                (intersections[j - 1].x == intersections[j].x)) {
+                j++;
+                if (j < nIntersections) bresenham(intersections[j - 1].x, i, intersections[j].x, i);
+            } else if ((intersections[j - 1].y != i && intersections[j].y != i) &&
+                       (intersections[j - 1].x != intersections[j].x)) {
+
+                bresenham(intersections[j - 1].x, i, intersections[j].x, i);
+                j++;
+            } else {
+                bresenham(intersections[j - 1].x, i, intersections[j].x, i);
+            }
+
+
         }
 
     }
@@ -404,12 +495,27 @@ void PaintPolygon(POLYGON *poly) {
 
 }
 
+void ClipPolygon() {
+
+}
+
+void ClipPolygons() {
+    for (int i = 0; i < LEN(polygons);
+    ++i) {
+        ClipPolygon(polygons[i]);
+    }
+}
 
 void init() {
     textureId = 1;
     lineCount = 0;
     tool = 2;
     drawType = 0;
+    Tx = 0;
+    Ty = 0;
+    alpha = 0;
+    Sx = 1;
+    Sy = 1;
     polygons[0] = polyCartago = NewPolygon();
     polygons[1] = polyGuanacaste = NewPolygon();
     polygons[2] = polyHeredia = NewPolygon();
@@ -419,6 +525,15 @@ void init() {
     polygons[6] = polyPuntarenas = NewPolygon();
     polygons[7] = polyPuntarenas1 = NewPolygon();
     polygons[8] = poly = NewPolygon();
+    polygonsAux[0] = NewPolygon();
+    polygonsAux[1] = NewPolygon();
+    polygonsAux[2] = NewPolygon();
+    polygonsAux[3] = NewPolygon();
+    polygonsAux[4] = NewPolygon();
+    polygonsAux[5] = NewPolygon();
+    polygonsAux[6] = NewPolygon();
+    polygonsAux[7] = NewPolygon();
+    polygonsAux[8] = NewPolygon();
 }
 
 void MyKeyboardFunc(unsigned char Key, int x, int y) {
@@ -433,16 +548,24 @@ void MyKeyboardFunc(unsigned char Key, int x, int y) {
             drawType = 2;
             break;
         case '+':
-            S_db(1.1, 1.1);
+            Sx += 0.05 * r;
+            Sy += 0.05 * r;
             break;
         case '-':
-            S_db(0.9, 0.9);
+            Sx -= 0.05 * r;
+            Sy -= 0.05 * r;
             break;
         case 'i':
-            R_db(1);
+            alpha += 0.05 * r;
             break;
         case 'j':
-            R_db(-1);
+            alpha -= 0.05 * r;
+            break;
+        case 'f':
+            r = 3;
+            break;
+        case 's':
+            r = 1;
             break;
     };
     glutPostRedisplay();
@@ -452,16 +575,22 @@ void MyKeyboardFunc(unsigned char Key, int x, int y) {
 void SpecialInput(int key, int x, int y) {
     switch (key) {
         case GLUT_KEY_UP:
-            T_db(0, -10);
+
+            // Yc += 10;
+            Ty += 3 * r;
             break;
         case GLUT_KEY_DOWN:
-            T_db(0, 10);
+
+            //Yc -= 10;
+            Ty -= 3 * r;
             break;
         case GLUT_KEY_LEFT:
-            T_db(-10, 0);
+            //Xc += 10;
+            Tx += 3 * r;
             break;
         case GLUT_KEY_RIGHT:
-            T_db(10, 0);
+            //Xc -= 10;
+            Tx -= 3 * r;
             break;
     };
     glutPostRedisplay();
@@ -469,29 +598,7 @@ void SpecialInput(int key, int x, int y) {
 
 
 void myMouseFunc(int button, int state, int x, int y) {
-    if (tool == 1) {
-        if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
-            lines[lineCount].p1.x = x;
-            lines[lineCount].p1.y = y;
-            glutPostRedisplay();
-        }
 
-        if (button == GLUT_LEFT_BUTTON && state == GLUT_UP) {
-            lines[lineCount].p2.x = x;
-            lines[lineCount].p2.y = y;
-
-            lineCount++;
-            glutPostRedisplay();
-        }
-
-
-    }
-    if (tool == 2) {
-        if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
-            AddPolygonLine(poly, x, y);
-            glutPostRedisplay();
-        }
-    }
 }
 
 void bresenham(int x0, int y0, int x1, int y1) {
@@ -506,70 +613,95 @@ void bresenham(int x0, int y0, int x1, int y1) {
         y1 = aux;
     }
 
-    dify = (y1 - y0);
-    difx = (x1 - x0);
-    Xp = x0;
-    Yp = y0;
+    if (y0 == y1) {
+        Xp = x0;
+        Yp = y0;
+        plot(Xp, Yp);
+        while (Xp != x1) {
+            Xp++;
+            plot(Xp, Yp);
+        }
+    } else if (x0 == x1) {
 
-    if (y0 <= y1) {
-        if (abs(difx) >= abs(dify)) {   //Cuadrante 1
-            Delta_E = 2 * dify;
-            Delta_NE = 2 * dify - 2 * difx;
-            Delta_AX = 1;
-            Delta_AY = 0;
-            Delta_BX = 1;
-            Delta_BY = 1;
-            Delta_A = Delta_E;
-            Delta_B = Delta_NE;
-            d = 2 * dify - difx;
-        } else {                        //Cuadrante 2
-            Delta_NE = 2 * dify - 2 * difx;
-            Delta_N = -2 * difx;
-            Delta_AX = 1;
-            Delta_AY = 1;
-            Delta_BX = 0;
-            Delta_BY = 1;
-            Delta_A = Delta_NE;
-            Delta_B = Delta_N;
-            d = dify - 2 * difx;
+        if (y0 > y1) {
+            int aux = y0;
+            y0 = y1;
+            y1 = aux;
+        }
+        Xp = x0;
+        Yp = y0;
+        plot(Xp, Yp);
+        while (Yp != y1) {
+            Yp++;
+            plot(Xp, Yp);
         }
     } else {
-        if (abs(difx) >= abs(dify)) {   //Cuadrante 8
-            Delta_E = 2 * dify;
-            Delta_SE = 2 * difx + 2 * dify;
-            Delta_BX = 1;
-            Delta_BY = 0;
-            Delta_AX = 1;
-            Delta_AY = -1;
-            Delta_B = Delta_E;
-            Delta_A = Delta_SE;
-            d = 2 * dify + difx;
-        } else {                        //Cuadrante 7
-            Delta_SE = 2 * difx + 2 * dify;
-            Delta_S = 2 * difx;
-            Delta_BX = 1;
-            Delta_BY = -1;
-            Delta_AX = 0;
-            Delta_AY = -1;
-            Delta_B = Delta_SE;
-            Delta_A = Delta_S;
-            d = dify + 2 * difx;
+        dify = (y1 - y0);
+        difx = (x1 - x0);
+        Xp = x0;
+        Yp = y0;
+
+        if (y0 <= y1) {
+            if (abs(difx) >= abs(dify)) {   //Cuadrante 1
+                Delta_E = 2 * dify;
+                Delta_NE = 2 * dify - 2 * difx;
+                Delta_AX = 1;
+                Delta_AY = 0;
+                Delta_BX = 1;
+                Delta_BY = 1;
+                Delta_A = Delta_E;
+                Delta_B = Delta_NE;
+                d = 2 * dify - difx;
+            } else {                        //Cuadrante 2
+                Delta_NE = 2 * dify - 2 * difx;
+                Delta_N = -2 * difx;
+                Delta_AX = 1;
+                Delta_AY = 1;
+                Delta_BX = 0;
+                Delta_BY = 1;
+                Delta_A = Delta_NE;
+                Delta_B = Delta_N;
+                d = dify - 2 * difx;
+            }
+        } else {
+            if (abs(difx) >= abs(dify)) {   //Cuadrante 8
+                Delta_E = 2 * dify;
+                Delta_SE = 2 * difx + 2 * dify;
+                Delta_BX = 1;
+                Delta_BY = 0;
+                Delta_AX = 1;
+                Delta_AY = -1;
+                Delta_B = Delta_E;
+                Delta_A = Delta_SE;
+                d = 2 * dify + difx;
+            } else {                        //Cuadrante 7
+                Delta_SE = 2 * difx + 2 * dify;
+                Delta_S = 2 * difx;
+                Delta_BX = 1;
+                Delta_BY = -1;
+                Delta_AX = 0;
+                Delta_AY = -1;
+                Delta_B = Delta_SE;
+                Delta_A = Delta_S;
+                d = dify + 2 * difx;
+            }
+        }
+
+        plot(Xp, Yp);
+        while (Xp != x1 || Yp != y1) {
+            if (d < 0) {
+                Xp += Delta_AX;
+                Yp += Delta_AY;
+                d += Delta_A;
+            } else {
+                Xp += Delta_BX;
+                Yp += Delta_BY;
+                d += Delta_B;
+            }
+            plot(Xp, Yp);
         }
     }
 
-    plot(Xp, Yp);
-    while (Xp != x1 || Yp != y1) {
-        if (d < 0) {
-            Xp += Delta_AX;
-            Yp += Delta_AY;
-            d += Delta_A;
-        } else {
-            Xp += Delta_BX;
-            Yp += Delta_BY;
-            d += Delta_B;
-        }
-        plot(Xp, Yp);
-    }
 }
 
 void clear_scene() {
@@ -645,8 +777,28 @@ void PaintPolygons() {
 
 }
 
+void reset_db() {
+    for (int i = 0; i < LEN(polygons);
+    ++i)
+    {
+        for (int j = 0; j < polygons[i]->nlines; ++j) {
+            polygons[i]->lines[j].p1.x = polygonsAux[i]->lines[j].p1.x;
+            polygons[i]->lines[j].p1.y = polygonsAux[i]->lines[j].p1.y;
+            polygons[i]->lines[j].p2.x = polygonsAux[i]->lines[j].p2.x;
+            polygons[i]->lines[j].p2.y = polygonsAux[i]->lines[j].p2.y;
+        }
+    }
+
+}
+
 void renderScene(void) {
     clear_scene();
+    reset_db();
+
+    S_db(Sx, Sy);
+    R_db(alpha);
+    T_db(Tx, Ty);
+
     if (drawType == 0)DrawPolygons();
     if (drawType == 1)PaintPolygons();
     if (drawType == 2)TexturePolygons();
@@ -913,15 +1065,15 @@ int main(int argc, char **argv) {
                 //printf("%d - %d,%d", k, x, y);
                 //printf("\n");
                 AddPolygonLine(polygons[k], x, y);
-
+                AddPolygonLine(polygonsAux[k], x, y);
             }
 
             free(tmp);
 
             i++;
         }
-        T_polygon(polygons[k], 50, 75);
-        S_polygon(polygons[k], 1.2, 1.2);
+        //T_polygon(polygons[k], 100, 100);
+        //S_polygon(polygons[k], 1.2, 1.2);
 
     }
 
