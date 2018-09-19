@@ -15,26 +15,11 @@
 #include <stdbool.h>
 #include <malloc.h>
 #include <GL/glut.h>
-#include <IL/il.h>
 #include "proyecto_1.h"
 
 int Xc = 500;
 int Yc = 500;
 int r = 1;
-
-int **findNewCoordinate(int s[][2], int p[][1]) {
-    int temp[2][1] = {0};
-
-    for (int i = 0; i < 2; i++)
-        for (int j = 0; j < 1; j++)
-            for (int k = 0; k < 2; k++)
-                temp[i][j] += (s[i][k] * p[k][j]);
-
-    p[0][0] = temp[0][0];
-    p[1][0] = temp[1][0];
-
-    return p;
-}
 
 float Tx, Ty, alpha, Sx, Sy;
 
@@ -125,6 +110,123 @@ void S_db(long double Sx, long double Sy) {
     for (int i = 0; i < LEN(polygons);
     ++i) {
         S_polygon(polygons[i], Sx, Sy);
+    }
+}
+
+// Returns x-value of point of intersectipn of two
+// lines
+int x_intersect(int x1, int y1, int x2, int y2,
+                int x3, int y3, int x4, int y4) {
+    int num = (x1 * y2 - y1 * x2) * (x3 - x4) -
+              (x1 - x2) * (x3 * y4 - y3 * x4);
+    int den = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
+    return num / den;
+}
+
+// Returns y-value of point of intersectipn of
+// two lines
+int y_intersect(int x1, int y1, int x2, int y2,
+                int x3, int y3, int x4, int y4) {
+    int num = (x1 * y2 - y1 * x2) * (y3 - y4) -
+              (y1 - y2) * (x3 * y4 - y3 * x4);
+    int den = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
+    return num / den;
+}
+
+// This functions clips all the edges w.r.t one clip
+// edge of clipping area
+void clip(POLYGON *poly,
+          int x1, int y1, int x2, int y2) {
+    int MAX_POINTS = 1;//HARDCODE
+    int new_points[poly->nlines][2];
+    int new_poly_size = 0;
+
+    // (ix,iy),(kx,ky) are the co-ordinate values of
+    // the points
+    for (int i = 0; i < poly->nlines; i++) {
+        // i and k form a line in polygon
+        int ix = poly->lines[i].p1.x, iy = poly->lines[i].p1.y;
+        int kx = poly->lines[i].p2.x, ky = poly->lines[i].p2.y;
+
+        // Calculating position of first point
+        // w.r.t. clipper line
+        int i_pos = (x2 - x1) * (iy - y1) - (y2 - y1) * (ix - x1);
+
+        // Calculating position of second point
+        // w.r.t. clipper line
+        int k_pos = (x2 - x1) * (ky - y1) - (y2 - y1) * (kx - x1);
+
+        // Case 1 : When both points are inside
+        if (i_pos < 0 && k_pos < 0) {
+            //Only second point is added
+            new_points[new_poly_size][0] = kx;
+            new_points[new_poly_size][1] = ky;
+            new_poly_size++;
+        }
+
+            // Case 2: When only first point is outside
+        else if (i_pos >= 0 && k_pos < 0) {
+            // Point of intersection with edge
+            // and the second point is added
+            new_points[new_poly_size][0] = x_intersect(x1,
+                                                       y1, x2, y2, ix, iy, kx, ky);
+            new_points[new_poly_size][1] = y_intersect(x1,
+                                                       y1, x2, y2, ix, iy, kx, ky);
+            new_poly_size++;
+
+            new_points[new_poly_size][0] = kx;
+            new_points[new_poly_size][1] = ky;
+            new_poly_size++;
+        }
+
+            // Case 3: When only second point is outside
+        else if (i_pos < 0 && k_pos >= 0) {
+            //Only point of intersection with edge is added
+            new_points[new_poly_size][0] = x_intersect(x1,
+                                                       y1, x2, y2, ix, iy, kx, ky);
+            new_points[new_poly_size][1] = y_intersect(x1,
+                                                       y1, x2, y2, ix, iy, kx, ky);
+            new_poly_size++;
+        }
+
+            // Case 4: When both points are outside
+        else {
+            //No points are added
+        }
+    }
+    // Copying new points into original array
+    // and changing the no. of vertices
+    poly->nlines = new_poly_size;
+    for (int i = 0; i < poly->nlines; i++)
+    {
+        poly->lines[i].p1.x = new_points[i][0];
+        poly->lines[i].p1.y = new_points[i][1];
+
+        poly->lines[i].p2.x = new_points[(i+1) % poly->nlines][0];
+        poly->lines[i].p2.y = new_points[(i+1) % poly->nlines][1];
+    }
+}
+
+// Implements Sutherland–Hodgman algorithm
+void ClipPolygon(POLYGON* poly, int clipper[][2]) {
+    //i and k are two consecutive indexes
+
+    for (int i = 0; i < 4; i++) {
+        int k = (i + 1) % 4;
+
+        // We pass the current array of vertices, it's size
+        // and the end points of the selected clipper line
+        clip(poly,
+             clipper[i][0],
+             clipper[i][1],
+             clipper[k][0],
+             clipper[k][1]);
+    }
+}
+
+void ClipPolygons(int clipper[][2]) {
+    for (int i = 0; i < LEN(polygons); ++i) {
+        ClipPolygon(polygons[i], clipper);
     }
 }
 
@@ -273,19 +375,6 @@ void AddPolygonLine(POLYGON *poly, int x, int y) {
         poly->lines[poly->nlines].p2.y = poly->lines[0].p1.y;
         //poly->lines[poly->nlines] = setLineValues(poly->lines[poly->nlines]);
         poly->nlines++;
-    }
-}
-
-void DrawPolygon(POLYGON *poly) {
-    if (poly->nlines < 1) { return; }
-    for (int i = 0; i < poly->nlines; i++) {
-        set_color(0, 0, 0);
-        bresenham(
-                poly->lines[i].p1.x,
-                poly->lines[i].p1.y,
-                poly->lines[i].p2.x,
-                poly->lines[i].p2.y
-        );
     }
 }
 
@@ -495,17 +584,6 @@ void PaintPolygon(POLYGON *poly) {
 
 }
 
-void ClipPolygon() {
-
-}
-
-void ClipPolygons() {
-    for (int i = 0; i < LEN(polygons);
-    ++i) {
-        ClipPolygon(polygons[i]);
-    }
-}
-
 void init() {
     textureId = 1;
     lineCount = 0;
@@ -571,7 +649,6 @@ void MyKeyboardFunc(unsigned char Key, int x, int y) {
     glutPostRedisplay();
 }
 
-
 void SpecialInput(int key, int x, int y) {
     switch (key) {
         case GLUT_KEY_UP:
@@ -595,7 +672,6 @@ void SpecialInput(int key, int x, int y) {
     };
     glutPostRedisplay();
 }
-
 
 void myMouseFunc(int button, int state, int x, int y) {
 
@@ -730,12 +806,22 @@ void draw_scene() {
     glFlush();
 }
 
+void DrawPolygon(POLYGON *poly) {
+    for (int i = 0; i < poly->nlines; i++) {
+        set_color(0, 0, 0);
+        bresenham(
+                poly->lines[i].p1.x,
+                poly->lines[i].p1.y,
+                poly->lines[i].p2.x,
+                poly->lines[i].p2.y
+        );
+    }
+}
+
 void DrawPolygons() {
     textureId = 0;
     set_color(0, 0, 0);
-    for (int i = 0; i < LEN(polygons);
-    ++i) {
-
+    for (int i = 0; i < LEN(polygons); ++i) {
         DrawPolygon(polygons[i]);
     }
 }
@@ -778,9 +864,8 @@ void PaintPolygons() {
 }
 
 void reset_db() {
-    for (int i = 0; i < LEN(polygons);
-    ++i)
-    {
+    for (int i = 0; i < LEN(polygons); ++i) {
+        polygons[i]->nlines = 1000;
         for (int j = 0; j < polygons[i]->nlines; ++j) {
             polygons[i]->lines[j].p1.x = polygonsAux[i]->lines[j].p1.x;
             polygons[i]->lines[j].p1.y = polygonsAux[i]->lines[j].p1.y;
@@ -794,6 +879,17 @@ void reset_db() {
 void renderScene(void) {
     clear_scene();
     reset_db();
+
+    int clipper_points[][2] = {{150,150},
+                               {150, H_SIZE - 150},
+                               {V_SIZE -150, H_SIZE - 150},
+                               {V_SIZE -150, 150} };
+
+    bresenham(clipper_points[0][0], clipper_points[0][1], clipper_points[1][0], clipper_points[1][1]);
+    bresenham(clipper_points[1][0], clipper_points[1][1], clipper_points[2][0], clipper_points[2][1]);
+    bresenham(clipper_points[2][0], clipper_points[2][1], clipper_points[3][0], clipper_points[3][1]);
+    bresenham(clipper_points[3][0], clipper_points[3][1], clipper_points[0][0], clipper_points[0][1]);
+    ClipPolygons(clipper_points);
 
     S_db(Sx, Sy);
     R_db(alpha);
@@ -1047,8 +1143,8 @@ int main(int argc, char **argv) {
         int y;
 
         i = 0;
-        char line[4098];
-        while (fgets(line, 4098, file)) {
+        char line[25];
+        while (fgets(line, 25, file)) {
             //if(line == NULL)break;
             // double row[ssParams->nreal + 1];
             char *tmp = strdup(line);
@@ -1060,23 +1156,16 @@ int main(int argc, char **argv) {
                 else y = atoi(tok);
             }
 
-
-            if (i % 1 == 0) {
-                //printf("%d - %d,%d", k, x, y);
-                //printf("\n");
-                AddPolygonLine(polygons[k], x, y);
-                AddPolygonLine(polygonsAux[k], x, y);
-            }
+            AddPolygonLine(polygons[k], x, y);
+            AddPolygonLine(polygonsAux[k], x, y);
 
             free(tmp);
-
             i++;
         }
         //T_polygon(polygons[k], 100, 100);
         //S_polygon(polygons[k], 1.2, 1.2);
 
     }
-
 
     // enter GLUT event processing cycle
     glutMainLoop();
