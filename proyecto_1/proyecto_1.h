@@ -76,3 +76,5 @@ void draw_scene();
 void renderScene();
 
 LINE setLineValues(LINE);
+
+int window;

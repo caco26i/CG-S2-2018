@@ -55,7 +55,6 @@ int compare(const void *a, const void *b) {
     return (orderA->x - orderB->x);
 }
 
-
 POINT R(POINT P, float alpha) {
     int px = P.x;
     int py = P.y;
@@ -74,7 +73,6 @@ void R_polygon(POLYGON *poly, float alpha) {
     T_polygon(poly, Xc, Yc);
 }
 
-
 POINT S(POINT P, float Sx, float Sy) {
     P.x *= Sx;
     P.y *= Sy;
@@ -91,16 +89,14 @@ void S_polygon(POLYGON *poly, float Sx, float Sy) {
 }
 
 void R_db(float alpha) {
-    for (int i = 0; i < LEN(polygons);
-    ++i) {
+    for (int i = 0; i < LEN(polygons); ++i) {
         R_polygon(polygons[i], alpha);
     }
 }
 
 void T_db(long double Dx, long double Dy) {
 
-    for (int i = 0; i < LEN(polygons);
-    ++i) {
+    for (int i = 0; i < LEN(polygons); ++i) {
         T_polygon(polygons[i], Dx, Dy);
     }
 }
@@ -645,6 +641,21 @@ void MyKeyboardFunc(unsigned char Key, int x, int y) {
         case 's':
             r = 1;
             break;
+        case 'r':
+            textureId = 1;
+            lineCount = 0;
+            tool = 2;
+            drawType = 0;
+            Tx = 0;
+            Ty = 0;
+            alpha = 0;
+            Sx = 1;
+            Sy = 1;
+            break;
+        case 27: // Escape key
+            glutDestroyWindow(window);
+            exit (1);
+            break;
     };
     glutPostRedisplay();
 }
@@ -808,7 +819,6 @@ void draw_scene() {
 
 void DrawPolygon(POLYGON *poly) {
     for (int i = 0; i < poly->nlines; i++) {
-        set_color(0, 0, 0);
         bresenham(
                 poly->lines[i].p1.x,
                 poly->lines[i].p1.y,
@@ -820,7 +830,6 @@ void DrawPolygon(POLYGON *poly) {
 
 void DrawPolygons() {
     textureId = 0;
-    set_color(0, 0, 0);
     for (int i = 0; i < LEN(polygons); ++i) {
         DrawPolygon(polygons[i]);
     }
@@ -865,7 +874,7 @@ void PaintPolygons() {
 
 void reset_db() {
     for (int i = 0; i < LEN(polygons); ++i) {
-        polygons[i]->nlines = 1000;
+        polygons[i]->nlines = polygonsAux[i]->nlines;
         for (int j = 0; j < polygons[i]->nlines; ++j) {
             polygons[i]->lines[j].p1.x = polygonsAux[i]->lines[j].p1.x;
             polygons[i]->lines[j].p1.y = polygonsAux[i]->lines[j].p1.y;
@@ -880,24 +889,27 @@ void renderScene(void) {
     clear_scene();
     reset_db();
 
-    int clipper_points[][2] = {{150,150},
-                               {150, H_SIZE - 150},
-                               {V_SIZE -150, H_SIZE - 150},
-                               {V_SIZE -150, 150} };
-
-    bresenham(clipper_points[0][0], clipper_points[0][1], clipper_points[1][0], clipper_points[1][1]);
-    bresenham(clipper_points[1][0], clipper_points[1][1], clipper_points[2][0], clipper_points[2][1]);
-    bresenham(clipper_points[2][0], clipper_points[2][1], clipper_points[3][0], clipper_points[3][1]);
-    bresenham(clipper_points[3][0], clipper_points[3][1], clipper_points[0][0], clipper_points[0][1]);
-    ClipPolygons(clipper_points);
+//    set_color(0, 1, 0);
+//    int clipper_points[][2] = {{150,150},
+//                               {150, H_SIZE - 150},
+//                               {V_SIZE -150, H_SIZE - 150},
+//                               {V_SIZE -150, 150} };
+//    ClipPolygons(clipper_points);
+//
+//
+//    bresenham(clipper_points[0][0], clipper_points[0][1], clipper_points[1][0], clipper_points[1][1]);
+//    bresenham(clipper_points[1][0], clipper_points[1][1], clipper_points[2][0], clipper_points[2][1]);
+//    bresenham(clipper_points[2][0], clipper_points[2][1], clipper_points[3][0], clipper_points[3][1]);
+//    bresenham(clipper_points[3][0], clipper_points[3][1], clipper_points[0][0], clipper_points[0][1]);
+    set_color(0,0,0);
 
     S_db(Sx, Sy);
     R_db(alpha);
     T_db(Tx, Ty);
 
     if (drawType == 0)DrawPolygons();
-    if (drawType == 1)PaintPolygons();
-    if (drawType == 2)TexturePolygons();
+    else if (drawType == 1)PaintPolygons();
+    else if (drawType == 2)TexturePolygons();
 
     draw_scene();
 }
@@ -1104,7 +1116,7 @@ int main(int argc, char **argv) {
     // init GLUT and create Window
     glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB);
     glutInitWindowSize(H_SIZE, V_SIZE);
-    glutCreateWindow("Proyecto 1");
+    window = glutCreateWindow("Proyecto 1");
     glutMouseFunc(myMouseFunc);
     glutKeyboardFunc(MyKeyboardFunc);
     glutSpecialFunc(SpecialInput);
