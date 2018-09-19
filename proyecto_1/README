@@ -1,1 +1,0 @@
-g++ -o test test.c -lglut -lGLU -lGL
