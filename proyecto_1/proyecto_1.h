@@ -54,7 +54,7 @@ int H_SIZE, V_SIZE;
 LINE lines[1000];
 int lineCount;
 int tool;
-
+int window;
 POLYGON *poly;
 POLYGON *polySanJose;
 POLYGON *polyHeredia;
