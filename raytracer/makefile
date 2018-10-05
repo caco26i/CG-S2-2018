@@ -1,10 +1,10 @@
 OBJECTS=raytracer.o
 OUTPUT=raytracer
 
-LDLIBS=-lX11 -lglut -lGLU -lGL -lm -lIL
+LDLIBS=-lX11 -lglut -lGLU -lGL -lm
 
 $(OUTPUT): $(OBJECTS)
-	cc -o $(OUTPUT) $(OBJECTS) $(LDLIBS) 
+	cc -o $(OUTPUT) $(OBJECTS) $(LDLIBS)
 
 $(OBJECTS): raytracer.h
 

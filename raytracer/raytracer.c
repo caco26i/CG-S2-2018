@@ -17,7 +17,6 @@
 #include <GL/glut.h>
 #include "raytracer.h"
 
-
 void plot(int x, int y, COLOR c) {
     if (x < 0 || y < 0 || x > H_SIZE - 1 || y > V_SIZE - 1)return;
     buffer[x][y] = c;
@@ -28,8 +27,6 @@ void set_color(double r, double g, double b) {
     color.G = g;
     color.B = b;
 }
-
-
 
 void init() {
     
@@ -43,7 +40,6 @@ void MyKeyboardFunc(unsigned char Key, int x, int y) {
             break;
     };
 }
-
 
 void draw_scene() {
     int i, j;
@@ -59,13 +55,19 @@ void draw_scene() {
     glFlush();
 }
 
-
-
 void renderScene(void) {
     draw_scene();
 }
 
-
+void ray() {
+	int x_min;
+	int y_min;
+	int x_max;
+	int y_max;
+	for (int i = 0; i < H_SIZE; i++) {
+		for (int j = 0; j < V_SIZE; j++) {			double float xw = (double float) (i + 1/2) * (x_max - x_min) / H_SIZE + x_min;			double float yw = (double float) (j + 1/2) * (y_max - y_min) / V_SIZE + y_min;			double float zw = 0;			double float L = sqrt(pow(xw - eye.x, 2) + pow(yw - eye.y, 2) + pow(zw - eye.z, 2));			double float xd = (xw - eye.x) / L;			double float yd = (yw - eye.y) / L; 			double float zd = (zw - eye.z) / L;			//COLOR color = De_que_color(eye.x, eye.y, eye.z, xd, yd, zd);			//set_color(color.R, color.G, color.B);			plot(i, j, color);		}
+	}
+}
 
 int main(int argc, char **argv) {
     int i, j, length;
