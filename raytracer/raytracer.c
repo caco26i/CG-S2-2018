@@ -29,14 +29,14 @@ void set_color(double r, double g, double b) {
 }
 
 void init() {
-    
+
 }
 
 void MyKeyboardFunc(unsigned char Key, int x, int y) {
     switch (Key) {
         case 27: // Escape key
             glutDestroyWindow(window);
-            exit (1);
+            exit(1);
             break;
     };
 }
@@ -59,14 +59,63 @@ void renderScene(void) {
     draw_scene();
 }
 
-void ray() {
-	int x_min;
-	int y_min;
-	int x_max;
-	int y_max;
-	for (int i = 0; i < H_SIZE; i++) {
-		for (int j = 0; j < V_SIZE; j++) {			double float xw = (double float) (i + 1/2) * (x_max - x_min) / H_SIZE + x_min;			double float yw = (double float) (j + 1/2) * (y_max - y_min) / V_SIZE + y_min;			double float zw = 0;			double float L = sqrt(pow(xw - eye.x, 2) + pow(yw - eye.y, 2) + pow(zw - eye.z, 2));			double float xd = (xw - eye.x) / L;			double float yd = (yw - eye.y) / L; 			double float zd = (zw - eye.z) / L;			//COLOR color = De_que_color(eye.x, eye.y, eye.z, xd, yd, zd);			//set_color(color.R, color.G, color.B);			plot(i, j, color);		}
-	}
+INTERSECTION *First_Intersection(POINT a, POINT d) {
+    INTERSECTION *interseccion;
+    long double tmin;
+    interseccion = NULL;
+    tmin = 0;
+//    ∀ objeto en la escena
+//            {
+//                    calcular intersección entre rayo y objeto;
+//                    Si hay interseccion y distancia al objeto < tmin
+//                    {
+//                        tmin = distancia
+//                        a
+//                        intersección;
+//                        interseccion = interseccion
+//                        con objeto;
+//                    }
+//            }
+    return interseccion;
+}
+
+
+COLOR De_que_color(POINT a, POINT d) {
+    COLOR color;
+    INTERSECTION* intersection;
+    intersection = First_Intersection(a, d);
+
+    if (!intersection)
+        color = background;
+    else {
+        SPHERE *obj = (SPHERE *) intersection->object;
+        color = obj->color;
+    }
+
+    return color;
+}
+
+void raytracer() {
+    int x_min;
+    int y_min;
+    int x_max;
+    int y_max;
+    POINT w;
+    POINT d;
+    for (int i = 0; i < H_SIZE; i++) {
+        for (int j = 0; j < V_SIZE; j++) {
+            w.x = (long double) (i + 1 / 2) * (x_max - x_min) / H_SIZE + x_min;
+            w.y = (long double) (j + 1 / 2) * (y_max - y_min) / V_SIZE + y_min;
+            w.z = 0;
+
+            long double L = (long double) sqrt(pow(w.x - eye.x, 2) + pow(w.y - eye.y, 2) + pow(w.z - eye.z, 2));
+            d.x = (long double) (w.x - eye.x) / L;
+            d.y = (long double) (w.y - eye.y) / L;
+            d.z = (long double) (w.z - eye.z) / L;
+            COLOR color = De_que_color(eye, d);
+            plot(i, j, color);
+        }
+    }
 }
 
 int main(int argc, char **argv) {

@@ -12,6 +12,7 @@
 #include <GL/glut.h>
 #define H_SIZE_default 400
 #define V_SIZE_default 400
+#define T_SPHERE 1
 
 typedef struct {
     float x;
@@ -26,15 +27,23 @@ typedef struct {
 } COLOR;
 
 typedef struct {
+    int type;
     float radius;
     POINT center;
     COLOR color;
 } SPHERE;
 
+typedef struct {
+    POINT point;
+    void* object;
+    bool set;
+} INTERSECTION;
+
 POINT eye;
 COLOR **buffer;
 COLOR color;
-COLOR background_color;
+COLOR background;
+
 int window;
 int H_SIZE, V_SIZE;
 
