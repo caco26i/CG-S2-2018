@@ -28,9 +28,47 @@ void set_color(double r, double g, double b) {
     color.B = b;
 }
 
-void init() {
 
+void initSpheres(){
+    for (int i = 0; i < N_SPHERES; ++i)
+    {
+        spheres[i]->type = T_SPHERE;
+        spheres[i]->radius = 100;
+        spheres[i]->center.x = 500;
+        spheres[i]->center.y = 500;
+        spheres[i]->center.z = 50;
+        spheres[i]->color = color;
+    }
 }
+
+void init() {
+    eye.x = 500;
+    eye.y = 500;
+    eye.z = -10;
+
+    color.R = 0;
+    color.G = 0;
+    color.B = 0;
+
+    background.R = 1;
+    background.G = 0;
+    background.B = 0;
+
+    spheres = (SPHERE**) malloc(sizeof(SPHERE*)*N_SPHERES);
+    for (int i = 0; i < N_SPHERES; ++i)
+    {
+        spheres[i] = (SPHERE*)malloc(sizeof(SPHERE));
+    }
+    initSpheres();
+
+    viewport.pmin.x = 0;
+    viewport.pmin.y = 0;
+    viewport.pmin.z = 0;
+    viewport.pmax.x = 1000;
+    viewport.pmax.y = 1000;
+    viewport.pmax.z = 0;
+}
+
 
 void MyKeyboardFunc(unsigned char Key, int x, int y) {
     switch (Key) {
@@ -41,6 +79,108 @@ void MyKeyboardFunc(unsigned char Key, int x, int y) {
     };
 }
 
+
+
+INTERSECTION IntersectionSphere(SPHERE *sphere, POINT e, POINT d){
+    INTERSECTION intersection;
+    float a = pow(d.x,2) + pow(d.y,2) + pow(d.z,2);
+    float b = 2 * ((e.x - sphere->center.x) + (e.y - sphere->center.y) + (e.z - sphere->center.z));
+    float g = pow((e.x - sphere->center.x),2) + pow((e.y - sphere->center.y),2) + pow((e.z - sphere->center.z),2) - pow(sphere->radius,2);
+    float delta = pow(b,2) - 4 * g * a;
+    if(delta > 0.0){
+
+    }else{
+        
+    }
+    
+    if(delta < -0.001){
+        intersection.t = INF;
+    }else if(delta < 0.001){
+        intersection.t = -b/2*a;
+
+    }else{
+        float t1,t2;
+        t1 = (-b + sqrt(delta))/2*a;
+        t2 = (-b - sqrt(delta))/2*a;
+        if(t1 < -0.001 && t2 < -0.001){
+            intersection.t = INF;
+        }else if(t1 < -0.001){
+            intersection.t = t2;
+        }else if(t2 < -0.001){
+            intersection.t = t1;
+        }else{
+            intersection.t = (t1<t2)?t1:t2;
+        }
+    }
+    if(intersection.t < -0.001)intersection.t = INF;
+    intersection.object = (void*)sphere;
+    return intersection;
+}
+
+INTERSECTION First_Intersection(POINT e, POINT d) {
+    long double tmin;
+    INTERSECTION intersection;
+    intersection.t = INF;
+    INTERSECTION auxIntersection;
+//    ∀ objeto en la escena
+//            {
+//                    calcular intersección entre rayo y objeto;
+//                    Si hay interseccion y distancia al objeto < tmin
+//                    {
+//                        tmin = distancia
+//                        a
+//                        intersección;
+//                        interseccion = interseccion
+//                        con objeto;
+//                    }
+//            }
+
+    for (int i = 0; i < N_SPHERES; ++i)
+    {
+        auxIntersection = IntersectionSphere(spheres[i], e, d);
+        if(auxIntersection.t >= 0 && auxIntersection.t < intersection.t)intersection = auxIntersection;
+    }
+    return intersection;
+}
+
+
+COLOR De_que_color(POINT e, POINT d) {
+    COLOR color;
+    INTERSECTION intersection;
+    intersection = First_Intersection(e, d);
+
+    if (intersection.t == INF)
+        color = background;
+    else {
+        SPHERE *obj = (SPHERE *) intersection.object;
+        color = obj->color;
+    }
+
+    return color;
+}
+
+void raytracer() {
+    int x_min = viewport.pmin.x;
+    int y_min = viewport.pmin.y;
+    int x_max = viewport.pmax.x;
+    int y_max = viewport.pmax.y;
+    POINT w;
+    POINT d;
+    for (int i = 0; i < H_SIZE; i++) {
+        for (int j = 0; j < V_SIZE; j++) {
+            w.x = (long double) (i + 1 / 2) * (x_max - x_min) / H_SIZE + x_min;
+            w.y = (long double) (j + 1 / 2) * (y_max - y_min) / V_SIZE + y_min;
+            w.z = 0;
+
+            long double L = (long double) sqrt(pow(w.x - eye.x, 2) + pow(w.y - eye.y, 2) + pow(w.z - eye.z, 2));
+            d.x = (long double) (w.x - eye.x);
+            d.y = (long double) (w.y - eye.y);
+            d.z = (long double) (w.z - eye.z);
+            COLOR color = De_que_color(eye, d);
+            plot(i, j, color);
+        }
+    }
+}
 void draw_scene() {
     int i, j;
 
@@ -56,68 +196,9 @@ void draw_scene() {
 }
 
 void renderScene(void) {
+    raytracer();
     draw_scene();
 }
-
-INTERSECTION *First_Intersection(POINT a, POINT d) {
-    INTERSECTION *interseccion;
-    long double tmin;
-    interseccion = NULL;
-    tmin = 0;
-//    ∀ objeto en la escena
-//            {
-//                    calcular intersección entre rayo y objeto;
-//                    Si hay interseccion y distancia al objeto < tmin
-//                    {
-//                        tmin = distancia
-//                        a
-//                        intersección;
-//                        interseccion = interseccion
-//                        con objeto;
-//                    }
-//            }
-    return interseccion;
-}
-
-
-COLOR De_que_color(POINT a, POINT d) {
-    COLOR color;
-    INTERSECTION* intersection;
-    intersection = First_Intersection(a, d);
-
-    if (!intersection)
-        color = background;
-    else {
-        SPHERE *obj = (SPHERE *) intersection->object;
-        color = obj->color;
-    }
-
-    return color;
-}
-
-void raytracer() {
-    int x_min;
-    int y_min;
-    int x_max;
-    int y_max;
-    POINT w;
-    POINT d;
-    for (int i = 0; i < H_SIZE; i++) {
-        for (int j = 0; j < V_SIZE; j++) {
-            w.x = (long double) (i + 1 / 2) * (x_max - x_min) / H_SIZE + x_min;
-            w.y = (long double) (j + 1 / 2) * (y_max - y_min) / V_SIZE + y_min;
-            w.z = 0;
-
-            long double L = (long double) sqrt(pow(w.x - eye.x, 2) + pow(w.y - eye.y, 2) + pow(w.z - eye.z, 2));
-            d.x = (long double) (w.x - eye.x) / L;
-            d.y = (long double) (w.y - eye.y) / L;
-            d.z = (long double) (w.z - eye.z) / L;
-            COLOR color = De_que_color(eye, d);
-            plot(i, j, color);
-        }
-    }
-}
-
 int main(int argc, char **argv) {
     int i, j, length;
 
@@ -157,52 +238,6 @@ int main(int argc, char **argv) {
     gluOrtho2D(0.0, H_SIZE, V_SIZE, 0.0);
     // register callbacks
     glutDisplayFunc(renderScene);
-
-/*
-    FILE *file;
-
-    char *rutas[] = {
-            "mapas/cartago.txt",
-            "mapas/guanacaste.txt",
-            "mapas/heredia.txt",
-            "mapas/limon.txt",
-            "mapas/sanjose.txt",
-            "mapas/alajuela.txt",
-            "mapas/puntarenas.txt",
-            "mapas/puntarenas1.txt",
-    };
-    for (int k = 0; k < LEN(rutas);
-    ++k) {
-        file = fopen(rutas[k], "r");
-
-        int x;
-        int y;
-
-        i = 0;
-        char line[25];
-        while (fgets(line, 25, file)) {
-            //if(line == NULL)break;
-            // double row[ssParams->nreal + 1];
-            char *tmp = strdup(line);
-
-            int j = 0;
-            const char *tok;
-            for (tok = strtok(line, ","); tok && *tok; j++, tok = strtok(NULL, "\t\n")) {
-                if (j == 0) x = atoi(tok);
-                else y = atoi(tok);
-            }
-
-            AddPolygonLine(polygons[k], x, y);
-            AddPolygonLine(polygonsAux[k], x, y);
-
-            free(tmp);
-            i++;
-        }
-        //T_polygon(polygons[k], 100, 100);
-        //S_polygon(polygons[k], 1.2, 1.2);
-
-    }
-*/
     // enter GLUT event processing cycle
     glutMainLoop();
 
