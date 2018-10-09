@@ -15,7 +15,10 @@
 #include <stdbool.h>
 #include <malloc.h>
 #include <GL/glut.h>
+#include <stdlib.h>     /* srand, rand */
+#include <time.h>       /* time */
 #include "raytracer.h"
+
 
 void plot(int x, int y, COLOR c) {
     if (x < 0 || y < 0 || x > H_SIZE - 1 || y > V_SIZE - 1)return;
@@ -30,21 +33,27 @@ void set_color(double r, double g, double b) {
 
 
 void initSpheres(){
+
     for (int i = 0; i < N_SPHERES; ++i)
     {
         spheres[i]->type = T_SPHERE;
-        spheres[i]->radius = 100;
-        spheres[i]->center.x = 500;
-        spheres[i]->center.y = 500;
-        spheres[i]->center.z = 50;
-        spheres[i]->color = color;
+        spheres[i]->radius = (rand()%100)+10;
+        spheres[i]->center.x = (rand()%1000);
+        spheres[i]->center.y = (rand()%1000);
+        spheres[i]->center.z = (rand()%100)+100;
+        spheres[i]->color.R = (rand()%100)/100.0;
+        spheres[i]->color.G = (rand()%100)/100.0;
+        spheres[i]->color.B = (rand()%100)/100.0;
+        
     }
 }
 
 void init() {
+    srand (time(NULL));
+
     eye.x = 500;
     eye.y = 500;
-    eye.z = -10;
+    eye.z = -100;
 
     color.R = 0;
     color.G = 0;
@@ -83,25 +92,33 @@ void MyKeyboardFunc(unsigned char Key, int x, int y) {
 
 INTERSECTION IntersectionSphere(SPHERE *sphere, POINT e, POINT d){
     INTERSECTION intersection;
-    float a = pow(d.x,2) + pow(d.y,2) + pow(d.z,2);
-    float b = 2 * ((e.x - sphere->center.x) + (e.y - sphere->center.y) + (e.z - sphere->center.z));
-    float g = pow((e.x - sphere->center.x),2) + pow((e.y - sphere->center.y),2) + pow((e.z - sphere->center.z),2) - pow(sphere->radius,2);
-    float delta = pow(b,2) - 4 * g * a;
+    float a = pow((d.x-e.x),2.0) + pow((d.y-e.y),2.0) + pow((d.z-e.z),2.0);
+    float b = 2.0 * ((d.x-e.x)*(e.x - sphere->center.x) + (d.y-e.y)*(e.y - sphere->center.y) + (d.z-e.z)*(e.z - sphere->center.z));
+    float g = pow((e.x - sphere->center.x),2.0) + pow((e.y - sphere->center.y),2.0) + pow((e.z - sphere->center.z),2.0) - pow(sphere->radius,2.0);
+    float delta = pow(b,2.0) - 4.0 * g * a;
+
+
     if(delta > 0.0){
 
     }else{
-        
+        /*
+        printf("pego\n");
+        printf("a %f\n", a);
+        printf("b %f\n", b);
+        printf("g %f\n", g);
+        printf("pow(b,2) %f\n", pow(b,2));
+        printf("4.0 * g * a %f\n", 4.0 * g * a);*/
     }
     
     if(delta < -0.001){
         intersection.t = INF;
     }else if(delta < 0.001){
-        intersection.t = -b/2*a;
+        intersection.t = -b/(2.0*a);
 
     }else{
         float t1,t2;
-        t1 = (-b + sqrt(delta))/2*a;
-        t2 = (-b - sqrt(delta))/2*a;
+        t1 = (-b + sqrt(delta))/(2.0*a);
+        t2 = (-b - sqrt(delta))/(2.0*a);
         if(t1 < -0.001 && t2 < -0.001){
             intersection.t = INF;
         }else if(t1 < -0.001){
@@ -154,6 +171,7 @@ COLOR De_que_color(POINT e, POINT d) {
     else {
         SPHERE *obj = (SPHERE *) intersection.object;
         color = obj->color;
+
     }
 
     return color;
@@ -164,18 +182,15 @@ void raytracer() {
     int y_min = viewport.pmin.y;
     int x_max = viewport.pmax.x;
     int y_max = viewport.pmax.y;
-    POINT w;
     POINT d;
     for (int i = 0; i < H_SIZE; i++) {
         for (int j = 0; j < V_SIZE; j++) {
-            w.x = (long double) (i + 1 / 2) * (x_max - x_min) / H_SIZE + x_min;
-            w.y = (long double) (j + 1 / 2) * (y_max - y_min) / V_SIZE + y_min;
-            w.z = 0;
+            d.x = i;//((i * (x_max - x_min)) / H_SIZE) + x_min;
+            d.y = j;//((j * (y_max - y_min)) / V_SIZE) + y_min;
+            d.z = 0;
 
-            long double L = (long double) sqrt(pow(w.x - eye.x, 2) + pow(w.y - eye.y, 2) + pow(w.z - eye.z, 2));
-            d.x = (long double) (w.x - eye.x);
-            d.y = (long double) (w.y - eye.y);
-            d.z = (long double) (w.z - eye.z);
+            //float L = sqrt(pow(w.x - eye.x, 2) + pow(w.y - eye.y, 2) + pow(w.z - eye.z, 2));
+
             COLOR color = De_que_color(eye, d);
             plot(i, j, color);
         }
