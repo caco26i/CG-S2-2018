@@ -26,17 +26,17 @@ int write_truecolor_tga() {
 // The image header
     char header[18] = {0}; // char = byte
     header[2] = 2; // truecolor
-    header[12] = V_SIZE & 0xFF;
-    header[13] = (V_SIZE >> 8) & 0xFF;
-    header[14] = H_SIZE & 0xFF;
-    header[15] = (H_SIZE >> 8) & 0xFF;
+    header[12] = H_SIZE & 0xFF;
+    header[13] = (H_SIZE >> 8) & 0xFF;
+    header[14] = V_SIZE & 0xFF;
+    header[15] = (V_SIZE >> 8) & 0xFF;
     header[16] = 24; // bits per pixel
 
     fwrite((const char *) &header, 1, sizeof(header), fp);
 
 // The image data is stored bottom-to-top, left-to-right
-    for (int y = H_SIZE - 1; y >= 0; y--)
-        for (int x = 0; x < V_SIZE; x++) {
+    for (int y = V_SIZE - 1; y >= 0; y--)
+        for (int x = 0; x < H_SIZE; x++) {
             fputc((int) (buffer[x][y].B * 255), fp);
             fputc((int) (buffer[x][y].G * 255), fp);
             fputc((int) (buffer[x][y].R * 255), fp);
