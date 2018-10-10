@@ -68,21 +68,72 @@ void set_color(double r, double g, double b) {
 
 void initSpheres(){
 
-    for (int i = 0; i < N_SPHERES; ++i)
-    {
-        spheres[i]->type = T_SPHERE;
-        spheres[i]->radius = (rand()%20)+10;
-        spheres[i]->center.x = (rand()%1000);
-        spheres[i]->center.y = (rand()%1000);
-        spheres[i]->center.z = (rand()%100)+100;
-        spheres[i]->color.R = (rand()%100)/100.0;
-        spheres[i]->color.G = (rand()%100)/100.0;
-        spheres[i]->color.B = (rand()%100)/100.0;
-        spheres[i]->Ka = 1;
-        spheres[i]->Kd = 1;
 
+    int NX = 2000;
+    int NY = 2000;
+    int N = 10000000;
+    int SCALE = (NX / 8);
 
+    int n,ix,iy;
+    double x=0.2,y=0.3,x1=0,y1=0,r=1.7320508075688772935;
+    double a0,b0,f1x,f1y;
+
+    for (n=0;n<N_SPHERES;n++) {
+        if ((n % (N/10)) == 0)
+            fprintf(stderr,".");
+        a0 = 3 * (1 + r - x) / (pow(1 + r - x,2.0) + y*y) - (1 + r) / (2 + r);
+        b0 = 3 * y / (pow(1 + r - x,2.0) + y*y);
+        f1x =  a0 / (a0*a0 + b0*b0);
+        f1y = -b0 / (a0*a0 + b0*b0);
+        switch (rand()%3) {
+            case 0:
+                x1 = a0;
+                y1 = b0;
+                break;
+            case 1:
+                x1 = -f1x / 2 - f1y * r / 2;
+                y1 = f1x * r / 2 - f1y / 2;
+                break;
+            case 2:
+                x1 = -f1x / 2 + f1y * r / 2;
+                y1 = -f1x * r / 2 - f1y / 2;
+                break;
+        }
+        if (n < 100)
+            continue;
+        ix = x * SCALE + NX/2;
+        iy = y * SCALE + NY/2;
+        x = x1;
+        y = y1;
+        if (ix < 0 || iy < 0 || ix >= NX || iy >= NY)
+            continue;
+
+        spheres[n]->type = T_SPHERE;
+        spheres[n]->radius = 10;
+        spheres[n]->center.x = x*50+H_SIZE/2;
+        spheres[n]->center.y = y*50+V_SIZE/2;
+        spheres[n]->center.z = 50;
+        spheres[n]->color.R = (rand()%100)/100.0;
+        spheres[n]->color.G = (rand()%100)/100.0;
+        spheres[n]->color.B = (rand()%100)/100.0;
+        spheres[n]->Ka = 1;
+        spheres[n]->Kd = 1;
     }
+
+//
+//    for (int i = 0; i < N_SPHERES; ++i)
+//    {
+//        spheres[i]->type = T_SPHERE;
+//        spheres[i]->radius = (rand()%20)+10;
+//        spheres[i]->center.x = (rand()%1000);
+//        spheres[i]->center.y = (rand()%1000);
+//        spheres[i]->center.z = (rand()%100)+100;
+//        spheres[i]->color.R = (rand()%100)/100.0;
+//        spheres[i]->color.G = (rand()%100)/100.0;
+//        spheres[i]->color.B = (rand()%100)/100.0;
+//        spheres[i]->Ka = 1;
+//        spheres[i]->Kd = 1;
+//    }
 }
 
 void initLights(){
@@ -91,7 +142,7 @@ void initLights(){
     {
         lights[i].pos.x = 500;
         lights[i].pos.y = 500;
-        lights[i].pos.z = 150;
+        lights[i].pos.z = 0;
         lights[i].intensity = 1;
     }
 }
