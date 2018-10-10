@@ -69,7 +69,7 @@ void init() {
 
     eye.x = 500;
     eye.y = 500;
-    eye.z = -300;
+    eye.z = -1000;
 
     color.R = 0;
     color.G = 0;
@@ -178,13 +178,17 @@ INTERSECTION First_Intersection(POINT e, POINT d) {
 }
 
 
-COLOR De_que_color(POINT e, POINT d) {
+COLOR De_que_color(POINT e, POINT d, int i, int j) {
     COLOR color;
     INTERSECTION intersection;
     intersection = First_Intersection(e, d);
 
-    if (intersection.t == INF)
-        color = background;
+    if (intersection.t == INF){
+        color.R = (float)j/1000.0;
+        color.G = (float)j/1000.0;
+        color.B = 1.0;
+    }
+        
     else {
         SPHERE *obj = (SPHERE *) intersection.object;
         color = obj->color;
@@ -251,7 +255,7 @@ void raytracer() {
             d.y = (w.y-eye.y)/L;
             d.z = (w.z-eye.z)/L;
 
-            COLOR color = De_que_color(eye, d);
+            COLOR color = De_que_color(eye, d, i, j);
             plot(i, j, color);
         }
     }
