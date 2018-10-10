@@ -13,7 +13,8 @@
 #define H_SIZE_default 400
 #define V_SIZE_default 400
 #define T_SPHERE 1
-#define N_SPHERES 30
+#define N_SPHERES 200
+#define N_LIGHTS 1
 #define INF 10000000
 
 typedef struct {
@@ -33,6 +34,8 @@ typedef struct {
     float radius;
     POINT center;
     COLOR color;
+    float Ka;
+    float Kd;
 } SPHERE;
 
 typedef struct {
@@ -40,6 +43,11 @@ typedef struct {
     void* object;
     bool set;
 } INTERSECTION;
+
+typedef struct {
+    POINT pos;
+    float intensity;
+} LIGHTSOURCE;
 
 typedef struct {
     POINT pmin;
@@ -52,6 +60,9 @@ COLOR color;
 COLOR background;
 SPHERE **spheres;
 VIEWPORT viewport;
+LIGHTSOURCE *lights;
+
+float AmbientIlluminationIntensity;
 
 int window;
 int H_SIZE, V_SIZE;

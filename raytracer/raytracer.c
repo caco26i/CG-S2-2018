@@ -37,23 +37,39 @@ void initSpheres(){
     for (int i = 0; i < N_SPHERES; ++i)
     {
         spheres[i]->type = T_SPHERE;
-        spheres[i]->radius = (rand()%100)+10;
+        spheres[i]->radius = (rand()%20)+10;
         spheres[i]->center.x = (rand()%1000);
         spheres[i]->center.y = (rand()%1000);
         spheres[i]->center.z = (rand()%100)+100;
         spheres[i]->color.R = (rand()%100)/100.0;
         spheres[i]->color.G = (rand()%100)/100.0;
         spheres[i]->color.B = (rand()%100)/100.0;
+        spheres[i]->Ka = 1;
+        spheres[i]->Kd = 1;
+
         
+    }
+}
+
+void initLights(){
+    lights = malloc(sizeof(LIGHTSOURCE)* N_LIGHTS);
+    for (int i = 0; i < N_LIGHTS; ++i)
+    {
+        lights[i].pos.x = 500;
+        lights[i].pos.y = 500;
+        lights[i].pos.z = 150;
+        lights[i].intensity = 1;
     }
 }
 
 void init() {
     srand (time(NULL));
 
+    AmbientIlluminationIntensity = 0.2;
+
     eye.x = 500;
     eye.y = 500;
-    eye.z = -100;
+    eye.z = -300;
 
     color.R = 0;
     color.G = 0;
@@ -69,7 +85,7 @@ void init() {
         spheres[i] = (SPHERE*)malloc(sizeof(SPHERE));
     }
     initSpheres();
-
+    initLights();
     viewport.pmin.x = 0;
     viewport.pmin.y = 0;
     viewport.pmin.z = 0;
@@ -92,8 +108,9 @@ void MyKeyboardFunc(unsigned char Key, int x, int y) {
 
 INTERSECTION IntersectionSphere(SPHERE *sphere, POINT e, POINT d){
     INTERSECTION intersection;
-    float a = pow((d.x-e.x),2.0) + pow((d.y-e.y),2.0) + pow((d.z-e.z),2.0);
-    float b = 2.0 * ((d.x-e.x)*(e.x - sphere->center.x) + (d.y-e.y)*(e.y - sphere->center.y) + (d.z-e.z)*(e.z - sphere->center.z));
+    //float a = pow((d.x-e.x),2.0) + pow((d.y-e.y),2.0) + pow((d.z-e.z),2.0);
+    float a = 1;
+    float b = 2.0 * ((d.x)*(e.x - sphere->center.x) + (d.y)*(e.y - sphere->center.y) + (d.z)*(e.z - sphere->center.z));
     float g = pow((e.x - sphere->center.x),2.0) + pow((e.y - sphere->center.y),2.0) + pow((e.z - sphere->center.z),2.0) - pow(sphere->radius,2.0);
     float delta = pow(b,2.0) - 4.0 * g * a;
 
@@ -172,6 +189,45 @@ COLOR De_que_color(POINT e, POINT d) {
         SPHERE *obj = (SPHERE *) intersection.object;
         color = obj->color;
 
+        POINT intersectionPoint;
+        float intensity = 0;
+
+        intersectionPoint.x = e.x + intersection.t * d.x;
+        intersectionPoint.y = e.y + intersection.t * d.y;
+        intersectionPoint.z = e.z + intersection.t * d.z;
+        float n;
+        POINT N;
+        N.x = intersectionPoint.x - obj->center.x;
+        N.y = intersectionPoint.y - obj->center.y;
+        N.z = intersectionPoint.z - obj->center.z;
+        n = sqrt(pow(N.x, 2) + pow(N.y, 2) + pow(N.z, 2));
+        N.x /=n;
+        N.y /=n;
+        N.z /=n;
+
+        POINT L;
+
+        for (int i = 0; i < N_LIGHTS; ++i)
+        {
+            
+            L.x = lights[i].pos.x - intersectionPoint.x;
+            L.y = lights[i].pos.y - intersectionPoint.y;
+            L.z = lights[i].pos.z - intersectionPoint.z;
+            n = sqrt(pow(L.x, 2) + pow(L.y, 2) + pow(L.z, 2));
+            L.x /=n;
+            L.y /=n;
+            L.z /=n;
+
+
+            intensity +=((L.x * N.x + L.y * N.y + L.z * N.z) * obj->Kd * lights[i].intensity);
+        }
+        intensity += obj->Ka * AmbientIlluminationIntensity;
+        if(intensity<0.0)intensity=0.0;
+        if(intensity>1.0)intensity=1.0;
+
+        color.R *=intensity;
+        color.G *=intensity;
+        color.B *=intensity;
     }
 
     return color;
@@ -183,13 +239,17 @@ void raytracer() {
     int x_max = viewport.pmax.x;
     int y_max = viewport.pmax.y;
     POINT d;
+    POINT w;
     for (int i = 0; i < H_SIZE; i++) {
         for (int j = 0; j < V_SIZE; j++) {
-            d.x = i;//((i * (x_max - x_min)) / H_SIZE) + x_min;
-            d.y = j;//((j * (y_max - y_min)) / V_SIZE) + y_min;
-            d.z = 0;
+            w.x = i + 0.5;//((i * (x_max - x_min)) / H_SIZE) + x_min;
+            w.y = j + 0.5;//((j * (y_max - y_min)) / V_SIZE) + y_min;
+            w.z = 0;
 
-            //float L = sqrt(pow(w.x - eye.x, 2) + pow(w.y - eye.y, 2) + pow(w.z - eye.z, 2));
+            float L = sqrt(pow(w.x - eye.x, 2) + pow(w.y - eye.y, 2) + pow(w.z - eye.z, 2));
+            d.x = (w.x-eye.x)/L;
+            d.y = (w.y-eye.y)/L;
+            d.z = (w.z-eye.z)/L;
 
             COLOR color = De_que_color(eye, d);
             plot(i, j, color);
