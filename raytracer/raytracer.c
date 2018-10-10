@@ -19,6 +19,40 @@
 #include <time.h>       /* time */
 #include "raytracer.h"
 
+int write_truecolor_tga() {
+    FILE *fp = fopen("out.tga", "w");
+    if (fp == NULL) return 0;
+
+// The image header
+    char header[18] = {0}; // char = byte
+    header[2] = 2; // truecolor
+    header[12] = V_SIZE & 0xFF;
+    header[13] = (V_SIZE >> 8) & 0xFF;
+    header[14] = H_SIZE & 0xFF;
+    header[15] = (H_SIZE >> 8) & 0xFF;
+    header[16] = 24; // bits per pixel
+
+    fwrite((const char *) &header, 1, sizeof(header), fp);
+
+// The image data is stored bottom-to-top, left-to-right
+    for (int y = H_SIZE - 1; y >= 0; y--)
+        for (int x = 0; x < V_SIZE; x++) {
+            fputc((int) (buffer[x][y].B * 255), fp);
+            fputc((int) (buffer[x][y].G * 255), fp);
+            fputc((int) (buffer[x][y].R * 255), fp);
+        }
+
+// The file footer
+    static const char footer[26] =
+            "\0\0\0\0" // no extension area
+            "\0\0\0\0" // no developer directory
+            "TRUEVISION-XFILE" // yep, this is a TGA file
+            ".";
+    fwrite((const char *) &footer, 1, sizeof(footer), fp);
+
+    fclose(fp);
+    return 1;
+}
 
 void plot(int x, int y, COLOR c) {
     if (x < 0 || y < 0 || x > H_SIZE - 1 || y > V_SIZE - 1)return;
@@ -44,15 +78,15 @@ void initSpheres(){
         spheres[i]->color.R = (rand()%100)/100.0;
         spheres[i]->color.G = (rand()%100)/100.0;
         spheres[i]->color.B = (rand()%100)/100.0;
-        
+
     }
 }
 
 void init() {
     srand (time(NULL));
 
-    eye.x = 500;
-    eye.y = 500;
+    eye.x = H_SIZE / 2;
+    eye.y = V_SIZE / 2;
     eye.z = -100;
 
     color.R = 0;
@@ -73,8 +107,8 @@ void init() {
     viewport.pmin.x = 0;
     viewport.pmin.y = 0;
     viewport.pmin.z = 0;
-    viewport.pmax.x = 1000;
-    viewport.pmax.y = 1000;
+    viewport.pmax.x = H_SIZE;
+    viewport.pmax.y = V_SIZE;
     viewport.pmax.z = 0;
 }
 
@@ -92,15 +126,17 @@ void MyKeyboardFunc(unsigned char Key, int x, int y) {
 
 INTERSECTION IntersectionSphere(SPHERE *sphere, POINT e, POINT d){
     INTERSECTION intersection;
-    float a = pow((d.x-e.x),2.0) + pow((d.y-e.y),2.0) + pow((d.z-e.z),2.0);
-    float b = 2.0 * ((d.x-e.x)*(e.x - sphere->center.x) + (d.y-e.y)*(e.y - sphere->center.y) + (d.z-e.z)*(e.z - sphere->center.z));
-    float g = pow((e.x - sphere->center.x),2.0) + pow((e.y - sphere->center.y),2.0) + pow((e.z - sphere->center.z),2.0) - pow(sphere->radius,2.0);
-    float delta = pow(b,2.0) - 4.0 * g * a;
+    float a = pow((d.x - e.x), 2.0) + pow((d.y - e.y), 2.0) + pow((d.z - e.z), 2.0);
+    float b = 2.0 * ((d.x - e.x) * (e.x - sphere->center.x) + (d.y - e.y) * (e.y - sphere->center.y) +
+                     (d.z - e.z) * (e.z - sphere->center.z));
+    float g = pow((e.x - sphere->center.x), 2.0) + pow((e.y - sphere->center.y), 2.0) +
+              pow((e.z - sphere->center.z), 2.0) - pow(sphere->radius, 2.0);
+    float delta = pow(b, 2.0) - 4.0 * g * a;
 
 
-    if(delta > 0.0){
+    if (delta > 0.0) {
 
-    }else{
+    } else {
         /*
         printf("pego\n");
         printf("a %f\n", a);
@@ -109,7 +145,7 @@ INTERSECTION IntersectionSphere(SPHERE *sphere, POINT e, POINT d){
         printf("pow(b,2) %f\n", pow(b,2));
         printf("4.0 * g * a %f\n", 4.0 * g * a);*/
     }
-    
+
     if(delta < -0.001){
         intersection.t = INF;
     }else if(delta < 0.001){
@@ -139,18 +175,6 @@ INTERSECTION First_Intersection(POINT e, POINT d) {
     INTERSECTION intersection;
     intersection.t = INF;
     INTERSECTION auxIntersection;
-//    ∀ objeto en la escena
-//            {
-//                    calcular intersección entre rayo y objeto;
-//                    Si hay interseccion y distancia al objeto < tmin
-//                    {
-//                        tmin = distancia
-//                        a
-//                        intersección;
-//                        interseccion = interseccion
-//                        con objeto;
-//                    }
-//            }
 
     for (int i = 0; i < N_SPHERES; ++i)
     {
@@ -213,21 +237,25 @@ void draw_scene() {
 void renderScene(void) {
     raytracer();
     draw_scene();
+    write_truecolor_tga();
 }
+
 int main(int argc, char **argv) {
     int i, j, length;
 
-    printf("Resolución: %s\n", argv[1]);
-    length = strlen(argv[1]);
-    for (i = 0; i < length; i++)
-        if (!isdigit(argv[1][i])) {
-            printf("Ingrese una resulución válida\n");
-            return 1;
-        }
+//    printf("Resolución: %s\n", argv[1]);
+//    length = strlen(argv[1]);
+//    for (i = 0; i < length; i++)
+//        if (!isdigit(argv[1][i])) {
+//            printf("Ingrese una resulución válida\n");
+//            return 1;
+//        }
 
     // Set Res
-    sscanf(argv[1], "%d", &H_SIZE);
-    sscanf(argv[1], "%d", &V_SIZE);
+    H_SIZE = 1008;
+    V_SIZE = 567;
+//    sscanf(argv[1], "%d", &H_SIZE);
+//    sscanf(argv[1], "%d", &V_SIZE);
 
     buffer = (COLOR **) malloc(H_SIZE * sizeof(COLOR *));
     for (i = 0; i < H_SIZE; i++) {

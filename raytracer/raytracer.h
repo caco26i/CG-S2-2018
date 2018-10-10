@@ -17,9 +17,9 @@
 #define INF 10000000
 
 typedef struct {
-    float x;
-    float y;
-    float z;
+    long double x;
+    long double y;
+    long double z;
 } POINT;
 
 typedef struct {
@@ -30,13 +30,13 @@ typedef struct {
 
 typedef struct {
     int type;
-    float radius;
+    long double radius;
     POINT center;
     COLOR color;
 } SPHERE;
 
 typedef struct {
-    int t;
+    long double t;
     void* object;
     bool set;
 } INTERSECTION;
