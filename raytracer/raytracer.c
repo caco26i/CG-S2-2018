@@ -144,7 +144,7 @@ INTERSECTION IntersectionSphere(SPHERE *sphere, POINT e, POINT d){
     INTERSECTION intersection;
     //float a = pow((d.x - e.x), 2.0) + pow((d.y - e.y), 2.0) + pow((d.z - e.z), 2.0);
     float a = 1;
-    floatb = 2.0 * ((d.x )*( e.x - sphere->center.x) + (d.y )*( e.y - sphere->center.y) +
+    float b = 2.0 * ((d.x )*( e.x - sphere->center.x) + (d.y )*( e.y - sphere->center.y) +
                      (d.z )*( e.z - sphere->center.z));
     float g = pow((e.x - sphere->center.x), 2.0) + pow((e.y - sphere->center.y), 2.0) +
               pow((e.z - sphere->center.z), 2.0) - pow(sphere->radius, 2.0);
