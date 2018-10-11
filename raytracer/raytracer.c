@@ -21,15 +21,14 @@
 
 void save_file() {
     FILE *fp = fopen("scene.txt", "w");
-    if (fp == NULL) return 0;
+    if (fp == NULL) return;
 
     for (int i = 0; i < N_LIGHTS; i++){
-	    fprintf(fp, "1;%f;%f;%f;%f\n", lights[i].pos.x, lights[i].pos.y, lights[i].pos.z, lights[i].intensity);
+	    fprintf(fp, "1;%Lf;%Lf;%Lf;%f\n", lights[i].pos.x, lights[i].pos.y, lights[i].pos.z, lights[i].intensity);
     }
 
-	for (i = 0; i < N_SPHERES; i++) {
-		fprintf(fp, "2;%f;%f;%f;%f;%f;%f;%f;%f;%f\n", spheres[i].radius, spheres[i].center.x, spheres[i].center.y, spheres[i].center.z, spheres[i].color.R, spheres[i].color.G, spheres[i].color.B, spheres[i].Ka, spheres[i].Kd);
-
+	for (int i = 0; i < N_SPHERES; i++) {
+		fprintf(fp, "2;%Lf;%Lf;%Lf;%Lf;%f;%f;%f;%f;%f\n", spheres[i].radius, spheres[i].center.x, spheres[i].center.y, spheres[i].center.z, spheres[i].color.R, spheres[i].color.G, spheres[i].color.B, spheres[i].Ka, spheres[i].Kd);
 	}
 }
 
