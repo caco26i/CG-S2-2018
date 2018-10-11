@@ -28,7 +28,8 @@ void save_file() {
     }
 
 	for (i = 0; i < N_SPHERES; i++) {
-		fprintf(fp, "1;%d\n", lights[i].pos.x, lights[i].pos.y, lights[i].pos.z, lights[i].intensity);
+		fprintf(fp, "2;%f;%f;%f;%f;%f;%f;%f;%f;%f\n", spheres[i].radius, spheres[i].center.x, spheres[i].center.y, spheres[i].center.z, spheres[i].color.R, spheres[i].color.G, spheres[i].color.B, spheres[i].Ka, spheres[i].Kd);
+
 	}
 }
 
