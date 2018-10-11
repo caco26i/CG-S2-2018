@@ -19,6 +19,19 @@
 #include <time.h>       /* time */
 #include "raytracer.h"
 
+void save_file() {
+    FILE *fp = fopen("scene.txt", "w");
+    if (fp == NULL) return 0;
+
+    for (int i = 0; i < N_LIGHTS; i++){
+	    fprintf(fp, "1;%f;%f;%f;%f\n", lights[i].pos.x, lights[i].pos.y, lights[i].pos.z, lights[i].intensity);
+    }
+
+	for (i = 0; i < N_SPHERES; i++) {
+		fprintf(fp, "1;%d\n", lights[i].pos.x, lights[i].pos.y, lights[i].pos.z, lights[i].intensity);
+	}
+}
+
 int write_truecolor_tga() {
     FILE *fp = fopen("out.tga", "w");
     if (fp == NULL) return 0;
@@ -113,17 +126,17 @@ void initSpheres(){
         float dis = sqrt(pow((t_x - (V_SIZE/2)), 2) + pow((t_y - (H_SIZE/2)), 2));
         float dist = sqrt(pow((x), 2) + pow((y), 2));
         spheres[n]->type = T_SPHERE;
-        spheres[n]->radius = dist*4+10;
+        spheres[n]->radius = dist*5+10;
         spheres[n]->center.x = t_x;
         spheres[n]->center.y = t_y;
-        spheres[n]->center.z = dist*20;
+        spheres[n]->center.z = -dist*20;
         spheres[n]->color.R = (float)((int)(dist*80)%255) / 255;
         spheres[n]->color.G = (float)((int)(dist*20)%255) / 255;
         spheres[n]->color.B = 0.5;
         spheres[n]->Ka = 1;
         spheres[n]->Kd = 1;
 
-		printf("%f\n", spheres[n]->color.R);
+		printf("%f\n", (float)spheres[n]->center.z);
     }
 
 //
@@ -148,7 +161,7 @@ void initLights(){
     {
         lights[i].pos.x = H_SIZE/2;
         lights[i].pos.y = V_SIZE/2;
-        lights[i].pos.z = -500;
+        lights[i].pos.z = -150;
         lights[i].intensity = 1;
     }
 }
