@@ -75,7 +75,7 @@ void initSpheres(){
     int SCALE = (NX / 8);
 
     int n,ix,iy;
-    double x=0.2,y=0.3,x1=0,y1=0,r=1.7320508075688772935;
+    double x=0.2,y=0.3,x1=0,y1=0,r=sqrt(3);
     double a0,b0,f1x,f1y;
 
     for (n=0;n<N_SPHERES;n++) {
@@ -108,16 +108,22 @@ void initSpheres(){
         if (ix < 0 || iy < 0 || ix >= NX || iy >= NY)
             continue;
 
+        float t_x = x*55+H_SIZE/2;
+        float t_y =  y*55+V_SIZE/2;
+        float dis = sqrt(pow((t_x - (V_SIZE/2)), 2) + pow((t_y - (H_SIZE/2)), 2));
+        float dist = sqrt(pow((x), 2) + pow((y), 2));
         spheres[n]->type = T_SPHERE;
-        spheres[n]->radius = 10;
-        spheres[n]->center.x = x*50+H_SIZE/2;
-        spheres[n]->center.y = y*50+V_SIZE/2;
-        spheres[n]->center.z = 50;
-        spheres[n]->color.R = (rand()%100)/100.0;
-        spheres[n]->color.G = (rand()%100)/100.0;
-        spheres[n]->color.B = (rand()%100)/100.0;
+        spheres[n]->radius = dist*4+10;
+        spheres[n]->center.x = t_x;
+        spheres[n]->center.y = t_y;
+        spheres[n]->center.z = dist*20;
+        spheres[n]->color.R = (float)((int)(dist*80)%255) / 255;
+        spheres[n]->color.G = (float)((int)(dist*20)%255) / 255;
+        spheres[n]->color.B = 0.5;
         spheres[n]->Ka = 1;
         spheres[n]->Kd = 1;
+
+		printf("%f\n", spheres[n]->color.R);
     }
 
 //
@@ -140,9 +146,9 @@ void initLights(){
     lights = malloc(sizeof(LIGHTSOURCE)* N_LIGHTS);
     for (int i = 0; i < N_LIGHTS; ++i)
     {
-        lights[i].pos.x = 500;
-        lights[i].pos.y = 500;
-        lights[i].pos.z = 0;
+        lights[i].pos.x = H_SIZE/2;
+        lights[i].pos.y = V_SIZE/2;
+        lights[i].pos.z = -500;
         lights[i].intensity = 1;
     }
 }
@@ -152,8 +158,8 @@ void init() {
 
     AmbientIlluminationIntensity = 0.2;
 
-    eye.x = H_SIZE / 2;
-    eye.y = V_SIZE / 2;
+    eye.x = H_SIZE/ 2;
+    eye.y =  V_SIZE/ 2;
     eye.z = -1000;
 
     color.R = 0;
