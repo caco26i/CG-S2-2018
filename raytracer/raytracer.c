@@ -28,7 +28,7 @@ void save_file() {
     }
 
 	for (int i = 0; i < N_SPHERES; i++) {
-		fprintf(fp, "2;%Lf;%Lf;%Lf;%Lf;%f;%f;%f;%f;%f\n", spheres[i].radius, spheres[i].center.x, spheres[i].center.y, spheres[i].center.z, spheres[i].color.R, spheres[i].color.G, spheres[i].color.B, spheres[i].Ka, spheres[i].Kd);
+		fprintf(fp, "2;%Lf;%Lf;%Lf;%Lf;%f;%f;%f;%f;%f\n", spheres[i]->radius, spheres[i]->center.x, spheres[i]->center.y, spheres[i]->center.z, spheres[i]->color.R, spheres[i]->color.G, spheres[i]->color.B, spheres[i]->Ka, spheres[i]->Kd);
 	}
 }
 
@@ -126,17 +126,17 @@ void initSpheres(){
         float dis = sqrt(pow((t_x - (V_SIZE/2)), 2) + pow((t_y - (H_SIZE/2)), 2));
         float dist = sqrt(pow((x), 2) + pow((y), 2));
         spheres[n]->type = T_SPHERE;
-        spheres[n]->radius = dist*5+10;
+        spheres[n]->radius = dist*3+5;
         spheres[n]->center.x = t_x;
         spheres[n]->center.y = t_y;
-        spheres[n]->center.z = -dist*20;
+        spheres[n]->center.z = -dist*30;
         spheres[n]->color.R = (float)((int)(dist*80)%255) / 255;
         spheres[n]->color.G = (float)((int)(dist*20)%255) / 255;
         spheres[n]->color.B = 0.5;
         spheres[n]->Ka = 1;
-        spheres[n]->Kd = 1;
+        spheres[n]->Kd = 1.0 - 1/dist + 0.1;
 
-		printf("%f\n", (float)spheres[n]->center.z);
+		//printf("%f\n", (float)spheres[n]->center.z);
     }
 
 //
@@ -157,13 +157,21 @@ void initSpheres(){
 
 void initLights(){
     lights = malloc(sizeof(LIGHTSOURCE)* N_LIGHTS);
-    for (int i = 0; i < N_LIGHTS; ++i)
-    {
-        lights[i].pos.x = H_SIZE/2;
-        lights[i].pos.y = V_SIZE/2;
-        lights[i].pos.z = -150;
-        lights[i].intensity = 1;
-    }
+    lights[0].pos.x = 0;
+    lights[0].pos.y = V_SIZE/2;
+    lights[0].pos.z = -150;
+    lights[0].intensity = 0.5;
+
+    lights[1].pos.x = H_SIZE;
+    lights[1].pos.y = V_SIZE/2;
+    lights[1].pos.z = -150;
+    lights[1].intensity = 0.5;
+
+    lights[2].pos.x = H_SIZE/2;
+    lights[2].pos.y = V_SIZE/2;
+    lights[2].pos.z = -150;
+    lights[2].intensity = 0.5;
+
 }
 
 void init() {
@@ -220,18 +228,6 @@ INTERSECTION IntersectionSphere(SPHERE *sphere, POINT e, POINT d){
               pow((e.z - sphere->center.z), 2.0) - pow(sphere->radius, 2.0);
     float delta = pow(b, 2.0) - 4.0 * g * a;
 
-
-    if (delta > 0.0) {
-
-    } else {
-        /*
-        printf("pego\n");
-        printf("a %f\n", a);
-        printf("b %f\n", b);
-        printf("g %f\n", g);
-        printf("pow(b,2) %f\n", pow(b,2));
-        printf("4.0 * g * a %f\n", 4.0 * g * a);*/
-    }
 
     if(delta < -0.001){
         intersection.t = INF;

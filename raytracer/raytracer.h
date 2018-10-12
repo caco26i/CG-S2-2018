@@ -13,8 +13,8 @@
 #define H_SIZE_default 400
 #define V_SIZE_default 400
 #define T_SPHERE 1
-#define N_SPHERES 10
-#define N_LIGHTS 1
+#define N_SPHERES 1000
+#define N_LIGHTS 3
 #define INF 10000000
 
 typedef struct {
