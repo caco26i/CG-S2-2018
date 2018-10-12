@@ -46,7 +46,7 @@ typedef struct {
 
 typedef struct {
     POINT pos;
-    float intensity;
+    long double intensity;
 } LIGHTSOURCE;
 
 typedef struct {

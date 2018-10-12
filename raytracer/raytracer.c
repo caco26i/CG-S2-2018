@@ -24,12 +24,55 @@ void save_file() {
     if (fp == NULL) return;
 
     for (int i = 0; i < N_LIGHTS; i++){
-	    fprintf(fp, "1;%Lf;%Lf;%Lf;%f\n", lights[i].pos.x, lights[i].pos.y, lights[i].pos.z, lights[i].intensity);
+	    fprintf(fp, "1;%Lf;%Lf;%Lf;%Lf;%f;%f;%f;%f;%f\n", lights[i].pos.x, lights[i].pos.y, lights[i].pos.z, lights[i].intensity, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
     }
 
 	for (int i = 0; i < N_SPHERES; i++) {
 		fprintf(fp, "2;%Lf;%Lf;%Lf;%Lf;%f;%f;%f;%f;%f\n", spheres[i]->radius, spheres[i]->center.x, spheres[i]->center.y, spheres[i]->center.z, spheres[i]->color.R, spheres[i]->color.G, spheres[i]->color.B, spheres[i]->Ka, spheres[i]->Kd);
 	}
+	    fclose(fp);
+}
+
+
+void read_file() {
+    FILE *fp = fopen("scene.txt", "r");
+    if (fp == NULL) return;
+	while (!feof(fp)) {
+		int type, i_light = 0, i_sphere = 0;
+		long double a, b, c, d;
+		float e, f, g, h, i;
+	  fscanf(fp, "%d;%Lf;%Lf;%Lf;%Lf;%f;%f;%f;%f;%f", &type, &a, &b, &c, &d, &e, &f, &g, &h, &i);
+
+    if(type == 1){
+      lights[i_light].pos.x = a;
+      lights[i_light].pos.y = b;
+      lights[i_light].pos.z = c;
+      lights[i_light].intensity = d;
+      i_light++;
+    } else if (type == 2){
+       spheres[i_sphere]->radius = a;
+       spheres[i_sphere]->center.x = b;
+       spheres[i_sphere]->center.y = c;
+       spheres[i_sphere]->center.z = d;
+       spheres[i_sphere]->color.R = e;
+       spheres[i_sphere]->color.G = f;
+       spheres[i_sphere]->color.B = g;
+       spheres[i_sphere]->Ka = h;
+       spheres[i_sphere]->Kd = i;
+       i_sphere++;
+    }
+		printf("%d", type);
+/*
+		for (int i = 0; i < N_LIGHTS; i++){
+			fprintf(fp, "1;%Lf;%Lf;%Lf;%f\n", lights[i].pos.x, lights[i].pos.y, lights[i].pos.z, lights[i].intensity);
+		}
+
+		for (int i = 0; i < N_SPHERES; i++) {
+			fprintf(fp, "2;%Lf;%Lf;%Lf;%Lf;%f;%f;%f;%f;%f\n", spheres[i]->radius, spheres[i]->center.x, spheres[i]->center.y, spheres[i]->center.z, spheres[i]->color.R, spheres[i]->color.G, spheres[i]->color.B, spheres[i]->Ka, spheres[i]->Kd);
+		}*/
+	}
+	fclose(fp);
+
 }
 
 int write_truecolor_tga() {
@@ -368,6 +411,7 @@ void renderScene(void) {
     raytracer();
     draw_scene();
     write_truecolor_tga();
+	save_file();
 }
 
 int main(int argc, char **argv) {
@@ -382,6 +426,8 @@ int main(int argc, char **argv) {
 //        }
 
     // Set Res
+
+	read_file();
     H_SIZE = 1008;
     V_SIZE = 567;
 //    sscanf(argv[1], "%d", &H_SIZE);
