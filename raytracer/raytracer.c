@@ -129,7 +129,7 @@ void initSpheres(){
         spheres[n]->radius = dist*3+5;
         spheres[n]->center.x = t_x;
         spheres[n]->center.y = t_y;
-        spheres[n]->center.z = -dist*30;
+        spheres[n]->center.z = -dist*30 + 100;
         spheres[n]->color.R = (float)((int)(dist*80)%255) / 255;
         spheres[n]->color.G = (float)((int)(dist*20)%255) / 255;
         spheres[n]->color.B = 0.5;
@@ -169,8 +169,8 @@ void initLights(){
 
     lights[2].pos.x = H_SIZE/2;
     lights[2].pos.y = V_SIZE/2;
-    lights[2].pos.z = -150;
-    lights[2].intensity = 0.5;
+    lights[2].pos.z = 0;
+    lights[2].intensity = 1;
 
 }
 
