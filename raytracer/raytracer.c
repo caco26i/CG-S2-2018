@@ -14,23 +14,24 @@
 #include <ctype.h>
 #include <stdbool.h>
 #include <malloc.h>
-#include <GL/glut.h>
 #include <stdlib.h>     /* srand, rand */
 #include <time.h>       /* time */
 #include "raytracer.h"
 
-void save_file() {
-    FILE *fp = fopen("scene.txt", "w");
-    if (fp == NULL) return;
 
-    for (int i = 0; i < N_LIGHTS; i++){
-	    fprintf(fp, "1;%Lf;%Lf;%Lf;%f\n", lights[i].pos.x, lights[i].pos.y, lights[i].pos.z, lights[i].intensity);
-    }
+#define N_RAYS 4
+#define INF 10000000
+#define SHADOW_K 1
+#define PROGRESS 0
 
-	for (int i = 0; i < N_SPHERES; i++) {
-		fprintf(fp, "2;%Lf;%Lf;%Lf;%Lf;%f;%f;%f;%f;%f\n", spheres[i]->radius, spheres[i]->center.x, spheres[i]->center.y, spheres[i]->center.z, spheres[i]->color.R, spheres[i]->color.G, spheres[i]->color.B, spheres[i]->Ka, spheres[i]->Kd);
-	}
-}
+
+int H_SIZE;
+int V_SIZE;
+int N_SPHERES;
+int N_LIGHTS;
+int ANTIALIASING;
+int SHADOWS;
+
 
 int write_truecolor_tga() {
     FILE *fp = fopen("out.tga", "w");
@@ -72,7 +73,7 @@ void plot(int x, int y, COLOR c) {
     buffer[x][y] = c;
 }
 
-void set_color(double r, double g, double b) {
+void set_color(float r, float g, float b) {
     color.R = r;
     color.G = g;
     color.B = b;
@@ -87,111 +88,87 @@ float myPow(float num, int exp){
 	return res;
 }
 
-void initSpheres(){
+void loadScene(){
+	scanf("H_SIZE %d\n",&H_SIZE);
+	scanf("V_SIZE %d\n",&V_SIZE);
+	scanf("ANTIALIASING %d\n",&ANTIALIASING);
+	scanf("SHADOWS %d\n",&SHADOWS);
+	scanf("N_SPHERES %d\n",&N_SPHERES);
 
+	printf("H_SIZE %d\n",H_SIZE);
+	printf("V_SIZE %d\n",V_SIZE);
+	printf("ANTIALIASING %d\n",ANTIALIASING);
+	printf("SHADOWS %d\n",SHADOWS);
+	printf("N_SPHERES %d\n",N_SPHERES);
 
-    int NX = 2000;
-    int NY = 2000;
-    int N = 10000000;
-    int SCALE = (NX / 8);
+	spheres = malloc(sizeof(SPHERE*)*N_SPHERES);
 
-    int n,ix,iy;
-    double x=0.2,y=0.3,x1=0,y1=0,r=sqrt(3);
-    double a0,b0,f1x,f1y;
+	for (int i = 0; i < N_SPHERES; ++i)
+	{
+		spheres[i] = malloc(sizeof(SPHERE));
+	    scanf("radius %f\n",&spheres[i]->radius);
+	    scanf("x %f\n",&spheres[i]->center.x);
+	    scanf("y %f\n",&spheres[i]->center.y);
+	    scanf("z %f\n",&spheres[i]->center.z);
+	    scanf("R %f\n",&spheres[i]->color.R);
+	    scanf("G %f\n",&spheres[i]->color.G);
+	    scanf("B %f\n",&spheres[i]->color.B);
+	    scanf("Ka %f\n",&spheres[i]->Ka);
+	    scanf("Kd %f\n",&spheres[i]->Kd);
 
-    for (n=0;n<N_SPHERES;n++) {
-        if ((n % (N/10)) == 0)
-            fprintf(stderr,".");
-        a0 = 3 * (1 + r - x) / (pow(1 + r - x,2.0) + y*y) - (1 + r) / (2 + r);
-        b0 = 3 * y / (pow(1 + r - x,2.0) + y*y);
-        f1x =  a0 / (a0*a0 + b0*b0);
-        f1y = -b0 / (a0*a0 + b0*b0);
-        switch (rand()%3) {
-            case 0:
-                x1 = a0;
-                y1 = b0;
-                break;
-            case 1:
-                x1 = -f1x / 2 - f1y * r / 2;
-                y1 = f1x * r / 2 - f1y / 2;
-                break;
-            case 2:
-                x1 = -f1x / 2 + f1y * r / 2;
-                y1 = -f1x * r / 2 - f1y / 2;
-                break;
-        }
-        if (n < 100)
-            continue;
-        ix = x * SCALE + NX/2;
-        iy = y * SCALE + NY/2;
-        x = x1;
-        y = y1;
-        if (ix < 0 || iy < 0 || ix >= NX || iy >= NY)
-            continue;
+	    printf("radius %f\n",spheres[i]->radius);
+	    printf("x %f\n",spheres[i]->center.x);
+	    printf("y %f\n",spheres[i]->center.y);
+	    printf("z %f\n",spheres[i]->center.z);
+	    printf("R %f\n",spheres[i]->color.R);
+	    printf("G %f\n",spheres[i]->color.G);
+	    printf("B %f\n",spheres[i]->color.B);
+	    printf("Ka %f\n",spheres[i]->Ka);
+	    printf("Kd %f\n",spheres[i]->Kd);
+	}
 
-        float t_x = x*55+H_SIZE/2;
-        float t_y =  y*55+V_SIZE/2;
-        float dis = sqrt(pow((t_x - (V_SIZE/2)), 2) + pow((t_y - (H_SIZE/2)), 2));
-        float dist = sqrt(pow((x), 2) + pow((y), 2));
-        spheres[n]->type = T_SPHERE;
-        spheres[n]->radius = dist*3+5;
-        spheres[n]->center.x = t_x;
-        spheres[n]->center.y = t_y;
-        spheres[n]->center.z = -dist*30 + 100;
-        spheres[n]->color.R = (float)((int)(dist*80)%255) / 255;
-        spheres[n]->color.G = (float)((int)(dist*20)%255) / 255;
-        spheres[n]->color.B = 0.5;
-        spheres[n]->Ka = 1;
-        spheres[n]->Kd = 1.0 - 1/dist + 0.1;
+	scanf("N_LIGHTS %d\n",&N_LIGHTS);
 
-		
-    }
+	printf("N_LIGHTS %d\n",N_LIGHTS);
+
+	lights = malloc(sizeof(LIGHT*)*N_LIGHTS);
+
+	for (int i = 0; i < N_LIGHTS; ++i)
+	{
+		lights[i] = malloc(sizeof(LIGHT));
+	    scanf("x %f\n",&lights[i]->pos.x);
+	    scanf("y %f\n",&lights[i]->pos.y);
+	    scanf("z %f\n",&lights[i]->pos.z);
+	    scanf("intensity %f\n",&lights[i]->intensity);
+
+	    printf("x %f\n",lights[i]->pos.x);
+	    printf("y %f\n",lights[i]->pos.y);
+	    printf("z %f\n",lights[i]->pos.z);
+	    printf("intensity %f\n",lights[i]->intensity);
+	}
+
 
 }
 
-void initLights(){
-    lights = malloc(sizeof(LIGHTSOURCE)* N_LIGHTS);
-    lights[0].pos.x = 0;
-    lights[0].pos.y = V_SIZE/2;
-    lights[0].pos.z = -150;
-    lights[0].intensity = 0.5;
 
-    lights[1].pos.x = H_SIZE;
-    lights[1].pos.y = V_SIZE/2;
-    lights[1].pos.z = -150;
-    lights[1].intensity = 0.5;
-
-    lights[2].pos.x = H_SIZE/2;
-    lights[2].pos.y = V_SIZE/2;
-    lights[2].pos.z = 0;
-    lights[2].intensity = 1;
-
-}
 
 void init() {
     srand (time(NULL));
 
     AmbientIlluminationIntensity = 0.2;
 
-    eye.x = H_SIZE/ 2;
-    eye.y =  V_SIZE/ 2;
+    eye.x = H_SIZE/2;
+    eye.y =  V_SIZE/2;
     eye.z = -1000;
 
     color.R = 0;
     color.G = 0;
     color.B = 0;
 
-    background.R = 1;
+    background.R = 0.03;
     background.G = 0;
-    background.B = 0;
+    background.B = 0.1;
 
-    spheres = (SPHERE**) malloc(sizeof(SPHERE*)*N_SPHERES);
-    for (int i = 0; i < N_SPHERES; ++i)
-    {
-        spheres[i] = (SPHERE*)malloc(sizeof(SPHERE));
-    }
-    initSpheres();
-    initLights();
     viewport.pmin.x = 0;
     viewport.pmin.y = 0;
     viewport.pmin.z = 0;
@@ -201,15 +178,6 @@ void init() {
 }
 
 
-void MyKeyboardFunc(unsigned char Key, int x, int y) {
-    switch (Key) {
-        case 27: // Escape key
-            glutDestroyWindow(window);
-            exit(1);
-            break;
-    };
-}
-
 
 
 INTERSECTION IntersectionSphere(SPHERE *sphere, POINT e, POINT d){
@@ -218,9 +186,9 @@ INTERSECTION IntersectionSphere(SPHERE *sphere, POINT e, POINT d){
     float a = 1;
     float b = 2.0 * ((d.x )*( e.x - sphere->center.x) + (d.y )*( e.y - sphere->center.y) +
                      (d.z )*( e.z - sphere->center.z));
-    float g = pow((e.x - sphere->center.x), 2.0) + pow((e.y - sphere->center.y), 2.0) +
-              pow((e.z - sphere->center.z), 2.0) - pow(sphere->radius, 2.0);
-    float delta = pow(b, 2.0) - 4.0 * g * a;
+    float g = myPow((e.x - sphere->center.x), 2.0) + myPow((e.y - sphere->center.y), 2.0) +
+              myPow((e.z - sphere->center.z), 2.0) - myPow(sphere->radius, 2.0);
+    float delta = myPow(b, 2.0) - 4.0 * g * a;
 
 
     if(delta < -0.001){
@@ -248,7 +216,7 @@ INTERSECTION IntersectionSphere(SPHERE *sphere, POINT e, POINT d){
 }
 
 INTERSECTION First_Intersection(POINT e, POINT d) {
-    long double tmin;
+    float tmin;
     INTERSECTION intersection;
     intersection.t = INF;
     INTERSECTION auxIntersection;
@@ -256,21 +224,22 @@ INTERSECTION First_Intersection(POINT e, POINT d) {
     for (int i = 0; i < N_SPHERES; ++i)
     {
         auxIntersection = IntersectionSphere(spheres[i], e, d);
-        if(auxIntersection.t >= 0 && auxIntersection.t < intersection.t)intersection = auxIntersection;
+        if(auxIntersection.t > (float)SHADOW_K){
+        	if(auxIntersection.t >= 0 && auxIntersection.t < intersection.t)intersection = auxIntersection;
+        }
+        
     }
     return intersection;
 }
 
 
-COLOR De_que_color(POINT e, POINT d, int i, int j) {
+COLOR De_que_color(POINT e, POINT d) {
     COLOR color;
     INTERSECTION intersection;
     intersection = First_Intersection(e, d);
 
     if (intersection.t == INF){
-        color.R = (float)j/1000.0;
-        color.G = (float)j/1000.0;
-        color.B = 1.0;
+        color = background;
     }
 
     else {
@@ -288,7 +257,7 @@ COLOR De_que_color(POINT e, POINT d, int i, int j) {
         N.x = intersectionPoint.x - obj->center.x;
         N.y = intersectionPoint.y - obj->center.y;
         N.z = intersectionPoint.z - obj->center.z;
-        n = sqrt(pow(N.x, 2) + pow(N.y, 2) + pow(N.z, 2));
+        n = sqrt(myPow(N.x, 2) + myPow(N.y, 2) + myPow(N.z, 2));
         N.x /=n;
         N.y /=n;
         N.z /=n;
@@ -298,17 +267,36 @@ COLOR De_que_color(POINT e, POINT d, int i, int j) {
         for (int i = 0; i < N_LIGHTS; ++i)
         {
 
-            L.x = lights[i].pos.x - intersectionPoint.x;
-            L.y = lights[i].pos.y - intersectionPoint.y;
-            L.z = lights[i].pos.z - intersectionPoint.z;
-            n = sqrt(pow(L.x, 2) + pow(L.y, 2) + pow(L.z, 2));
+        	INTERSECTION intersectionLight;
+    		
+
+            L.x = lights[i]->pos.x - intersectionPoint.x;
+            L.y = lights[i]->pos.y - intersectionPoint.y;
+            L.z = lights[i]->pos.z - intersectionPoint.z;
+            n = sqrt(myPow(L.x, 2) + myPow(L.y, 2) + myPow(L.z, 2));
             L.x /=n;
             L.y /=n;
             L.z /=n;
 
-            float Fatt = 1.0 / pow(n,2);
 
-            intensity +=((L.x * N.x + L.y * N.y + L.z * N.z) * obj->Kd * lights[i].intensity * Fatt);
+            if(SHADOWS){
+            	intersectionLight = First_Intersection(intersectionPoint, L);
+            	
+	            if (intersectionLight.t == INF){
+	            	//printf("no toca nada %Lf\n", intersectionLight.t);
+			        float Fatt = fmin(1.0,1.0 / (myPow(n/100.0,2)));
+		            float cos = (L.x * N.x + L.y * N.y + L.z * N.z);
+		            if(cos > 0)intensity +=(cos * obj->Kd * lights[i]->intensity * Fatt);
+			    }
+            }else{
+            	float Fatt = fmin(1.0,1.0 / (myPow(n/100.0,2)));
+	            float cos = (L.x * N.x + L.y * N.y + L.z * N.z);
+	            if(cos > 0)intensity +=(cos * obj->Kd * lights[i]->intensity * Fatt);
+            }
+            
+            //printf("Fatt %f\n", n );
+            
+            
         }
         intensity += obj->Ka * AmbientIlluminationIntensity;
         if(intensity<0.0)intensity=0.0;
@@ -330,58 +318,64 @@ void raytracer() {
     POINT d;
     POINT w;
     for (int i = 0; i < H_SIZE; i++) {
+    	if(PROGRESS)printf("%f\n", ((float)i / (float)H_SIZE)*100);
         for (int j = 0; j < V_SIZE; j++) {
-            w.x = i + 0.5;//((i * (x_max - x_min)) / H_SIZE) + x_min;
-            w.y = j + 0.5;//((j * (y_max - y_min)) / V_SIZE) + y_min;
-            w.z = 0;
+        	
 
-            float L = sqrt(pow(w.x - eye.x, 2) + pow(w.y - eye.y, 2) + pow(w.z - eye.z, 2));
-            d.x = (w.x-eye.x)/L;
-            d.y = (w.y-eye.y)/L;
-            d.z = (w.z-eye.z)/L;
+        	COLOR color;
+        	color.R = 0;
+        	color.G = 0;
+        	color.B = 0;
 
-            COLOR color = De_que_color(eye, d, i, j);
+        	if(!ANTIALIASING){
+        		w.x = i + 0.5;//((i * (x_max - x_min)) / H_SIZE) + x_min;
+	            w.y = j + 0.5;//((j * (y_max - y_min)) / V_SIZE) + y_min;
+	            w.z = 0;
+
+	            float L = sqrt(myPow(w.x - eye.x, 2) + myPow(w.y - eye.y, 2) + myPow(w.z - eye.z, 2));
+	            d.x = (w.x-eye.x)/L;
+	            d.y = (w.y-eye.y)/L;
+	            d.z = (w.z-eye.z)/L;
+
+	            color = De_que_color(eye, d);
+        	}else{
+        		for (int k = 0; k < N_RAYS / 2; ++k)
+	        	{
+	        		for (int l = 0; l < N_RAYS / 2; ++l)
+	        		{
+	        			w.x = i + (1/(N_RAYS / 2 - 1))*k;//((i * (x_max - x_min)) / H_SIZE) + x_min;
+			            w.y = j + (1/(N_RAYS / 2 - 1))*l;//((j * (y_max - y_min)) / V_SIZE) + y_min;
+			            w.z = 0;
+
+			            float L = sqrt(myPow(w.x - eye.x, 2) + myPow(w.y - eye.y, 2) + myPow(w.z - eye.z, 2));
+			            d.x = (w.x-eye.x)/L;
+			            d.y = (w.y-eye.y)/L;
+			            d.z = (w.z-eye.z)/L;
+
+			            COLOR auxColor = De_que_color(eye, d);
+			            color.R += auxColor.R;
+			        	color.G += auxColor.G;
+			        	color.B += auxColor.B;
+	        		}
+	        		
+	        	}
+
+	            color.R /= N_RAYS;
+	        	color.G /= N_RAYS;
+	        	color.B /= N_RAYS;
+        	}
+        	
             plot(i, j, color);
         }
     }
-}
-void draw_scene() {
-    int i, j;
-
-    for (i = 0; i < H_SIZE; i++) {
-        for (j = 0; j < V_SIZE; j++) {
-            glColor3f(buffer[i][j].R, buffer[i][j].G, buffer[i][j].B);
-            glBegin(GL_POINTS);
-            glVertex2i(i, j);
-            glEnd();
-        }
-    }
-    glFlush();
-}
-
-void renderScene(void) {
-    raytracer();
-    draw_scene();
-    write_truecolor_tga();
+    printf("Listo\n");
 }
 
 int main(int argc, char **argv) {
     int i, j, length;
 
-//    printf("Resolución: %s\n", argv[1]);
-//    length = strlen(argv[1]);
-//    for (i = 0; i < length; i++)
-//        if (!isdigit(argv[1][i])) {
-//            printf("Ingrese una resulución válida\n");
-//            return 1;
-//        }
-
-    // Set Res
-    H_SIZE = 1008;
-    V_SIZE = 567;
-//    sscanf(argv[1], "%d", &H_SIZE);
-//    sscanf(argv[1], "%d", &V_SIZE);
-
+    loadScene();
+    init();
     buffer = (COLOR **) malloc(H_SIZE * sizeof(COLOR *));
     for (i = 0; i < H_SIZE; i++) {
         buffer[i] = (COLOR *) malloc(V_SIZE * sizeof(COLOR));
@@ -389,25 +383,9 @@ int main(int argc, char **argv) {
 
     set_color(1, 1, 1);
 
-    init();
-
-    glutInit(&argc, argv);
-
-    // init GLUT and create Window
-    glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB);
-    glutInitWindowSize(H_SIZE, V_SIZE);
-    window = glutCreateWindow("Raytracer");
-    glutKeyboardFunc(MyKeyboardFunc);
-
-    glClear(GL_COLOR_BUFFER_BIT);
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-
-    gluOrtho2D(0.0, H_SIZE, V_SIZE, 0.0);
-    // register callbacks
-    glutDisplayFunc(renderScene);
-    // enter GLUT event processing cycle
-    glutMainLoop();
+    
+    raytracer();
+    write_truecolor_tga();
 
     printf("Fin del programa %s...\n\n", argv[0]);
 
