@@ -78,6 +78,14 @@ void set_color(double r, double g, double b) {
     color.B = b;
 }
 
+float myPow(float num, int exp){
+	float res = num;
+	for (int i = 1; i < exp; ++i)
+	{
+		res *= num;
+	}
+	return res;
+}
 
 void initSpheres(){
 
@@ -136,23 +144,9 @@ void initSpheres(){
         spheres[n]->Ka = 1;
         spheres[n]->Kd = 1.0 - 1/dist + 0.1;
 
-		//printf("%f\n", (float)spheres[n]->center.z);
+		
     }
 
-//
-//    for (int i = 0; i < N_SPHERES; ++i)
-//    {
-//        spheres[i]->type = T_SPHERE;
-//        spheres[i]->radius = (rand()%20)+10;
-//        spheres[i]->center.x = (rand()%1000);
-//        spheres[i]->center.y = (rand()%1000);
-//        spheres[i]->center.z = (rand()%100)+100;
-//        spheres[i]->color.R = (rand()%100)/100.0;
-//        spheres[i]->color.G = (rand()%100)/100.0;
-//        spheres[i]->color.B = (rand()%100)/100.0;
-//        spheres[i]->Ka = 1;
-//        spheres[i]->Kd = 1;
-//    }
 }
 
 void initLights(){
@@ -312,8 +306,9 @@ COLOR De_que_color(POINT e, POINT d, int i, int j) {
             L.y /=n;
             L.z /=n;
 
+            float Fatt = 1.0 / pow(n,2);
 
-            intensity +=((L.x * N.x + L.y * N.y + L.z * N.z) * obj->Kd * lights[i].intensity);
+            intensity +=((L.x * N.x + L.y * N.y + L.z * N.z) * obj->Kd * lights[i].intensity * Fatt);
         }
         intensity += obj->Ka * AmbientIlluminationIntensity;
         if(intensity<0.0)intensity=0.0;
