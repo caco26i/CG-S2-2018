@@ -115,6 +115,8 @@ void loadScene(){
 	    scanf("B %f\n",&spheres[i]->color.B);
 	    scanf("Ka %f\n",&spheres[i]->Ka);
 	    scanf("Kd %f\n",&spheres[i]->Kd);
+	    scanf("Ks %f\n",&spheres[i]->Ks);
+	    scanf("Kn %f\n",&spheres[i]->Kn);
 
 	    printf("radius %f\n",spheres[i]->radius);
 	    printf("x %f\n",spheres[i]->center.x);
@@ -125,6 +127,8 @@ void loadScene(){
 	    printf("B %f\n",spheres[i]->color.B);
 	    printf("Ka %f\n",spheres[i]->Ka);
 	    printf("Kd %f\n",spheres[i]->Kd);
+	    printf("Ks %f\n",spheres[i]->Ks);
+	    printf("Kn %f\n",spheres[i]->Kn);
 	}
 
 	scanf("N_LIGHTS %d\n",&N_LIGHTS);
@@ -248,6 +252,7 @@ COLOR De_que_color(POINT e, POINT d) {
 
         POINT intersectionPoint;
         float intensity = 0;
+        float E = 0;
 
         intersectionPoint.x = e.x + intersection.t * d.x;
         intersectionPoint.y = e.y + intersection.t * d.y;
@@ -278,20 +283,39 @@ COLOR De_que_color(POINT e, POINT d) {
             L.y /=n;
             L.z /=n;
 
-
+            bool lid = true;
             if(SHADOWS){
             	intersectionLight = First_Intersection(intersectionPoint, L);
             	
-	            if (intersectionLight.t == INF){
-	            	//printf("no toca nada %Lf\n", intersectionLight.t);
-			        float Fatt = fmin(1.0,1.0 / (myPow(n/100.0,2)));
-		            float cos = (L.x * N.x + L.y * N.y + L.z * N.z);
-		            if(cos > 0)intensity +=(cos * obj->Kd * lights[i]->intensity * Fatt);
+	            if (intersectionLight.t != INF){
+	            	lid = false;
 			    }
-            }else{
-            	float Fatt = fmin(1.0,1.0 / (myPow(n/100.0,2)));
-	            float cos = (L.x * N.x + L.y * N.y + L.z * N.z);
-	            if(cos > 0)intensity +=(cos * obj->Kd * lights[i]->intensity * Fatt);
+            }
+
+            if(lid){
+
+            	float Fatt,cos;
+            	POINT R;
+            	POINT V;
+
+            	E = 0;
+
+            	R.x = 0;
+            	R.y = 0;
+            	R.z = 0;
+            	
+            	V.x = -d.x;
+            	V.y = -d.y;
+            	V.z = -d.z;
+
+            	
+				Fatt = fmin(1.0,1.0 / (myPow(n/100.0,2)));
+
+            	cos = (V.x * R.x + V.y * R.y + V.z * R.z);
+				if(cos > 0)E += (myPow(cos,obj->Kn) * obj->Ks * lights[i]->intensity * Fatt);
+
+	            cos = (L.x * N.x + L.y * N.y + L.z * N.z);
+	            if(cos > 0)intensity += (cos * obj->Kd * lights[i]->intensity * Fatt);
             }
             
             //printf("Fatt %f\n", n );
@@ -299,12 +323,17 @@ COLOR De_que_color(POINT e, POINT d) {
             
         }
         intensity += obj->Ka * AmbientIlluminationIntensity;
-        if(intensity<0.0)intensity=0.0;
+        
         if(intensity>1.0)intensity=1.0;
+		if(E>1.0)E=1.0;
 
         color.R *=intensity;
         color.G *=intensity;
         color.B *=intensity;
+
+        color.R = color.R + E * (1 - color.R);
+        color.G = color.G + E * (1 - color.G);
+        color.B = color.B + E * (1 - color.B);
     }
 
     return color;

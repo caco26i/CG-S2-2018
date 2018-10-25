@@ -12,6 +12,8 @@ G 0
 B 0
 Ka 1
 Kd 1
+Ks 1
+Kn 5
 radius 10
 x 500
 y 290
@@ -21,6 +23,8 @@ G 0
 B 1
 Ka 1
 Kd 1
+Ks 1
+Kn 5
 N_LIGHTS 3
 x 500
 y 290

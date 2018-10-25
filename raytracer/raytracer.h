@@ -26,6 +26,8 @@ typedef struct {
     COLOR color;
     float Ka;
     float Kd;
+    float Ks;
+    float Kn;
 } SPHERE;
 
 typedef struct {
