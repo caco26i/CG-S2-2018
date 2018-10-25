@@ -273,7 +273,7 @@ COLOR De_que_color(POINT e, POINT d) {
         {
 
         	INTERSECTION intersectionLight;
-    		
+    		float Fatt,cosNL,cosVR;
 
             L.x = lights[i]->pos.x - intersectionPoint.x;
             L.y = lights[i]->pos.y - intersectionPoint.y;
@@ -282,6 +282,7 @@ COLOR De_que_color(POINT e, POINT d) {
             L.x /=n;
             L.y /=n;
             L.z /=n;
+            
 
             bool lid = true;
             if(SHADOWS){
@@ -294,34 +295,35 @@ COLOR De_que_color(POINT e, POINT d) {
 
             if(lid){
 
-            	float Fatt,cos;
+            	
             	POINT R;
             	POINT V;
 
-            	E = 0;
+            	Fatt = fmin(1.0,1.0 / (myPow(n/100.0,2)));
 
-            	R.x = 0;
-            	R.y = 0;
-            	R.z = 0;
+            	cosNL = (L.x * N.x + L.y * N.y + L.z * N.z);
+
+            	R.x = 2 * N.x * cosNL - L.x;
+            	R.y = 2 * N.y * cosNL - L.y;
+            	R.z = 2 * N.z * cosNL - L.z;
             	
             	V.x = -d.x;
             	V.y = -d.y;
             	V.z = -d.z;
 
-            	
-				Fatt = fmin(1.0,1.0 / (myPow(n/100.0,2)));
+            	cosVR = (V.x * R.x + V.y * R.y + V.z * R.z);
 
-            	cos = (V.x * R.x + V.y * R.y + V.z * R.z);
-				if(cos > 0)E += (myPow(cos,obj->Kn) * obj->Ks * lights[i]->intensity * Fatt);
+				
 
-	            cos = (L.x * N.x + L.y * N.y + L.z * N.z);
-	            if(cos > 0)intensity += (cos * obj->Kd * lights[i]->intensity * Fatt);
+				if(cosVR > 0)E += (myPow(cosVR,obj->Kn) * obj->Ks * lights[i]->intensity * Fatt);
+	            if(cosNL > 0)intensity += (cosNL * obj->Kd * lights[i]->intensity * Fatt);
             }
             
             //printf("Fatt %f\n", n );
             
             
         }
+
         intensity += obj->Ka * AmbientIlluminationIntensity;
         
         if(intensity>1.0)intensity=1.0;
