@@ -18,26 +18,24 @@
 #include <time.h>       /* time */
 #include "raytracer.h"
 
-
 #define N_RAYS 4
 #define INF 10000000
 #define SHADOW_K 1
 #define PROGRESS 0
 
-
 int H_SIZE;
 int V_SIZE;
+int N_POLYGONS;
 int N_SPHERES;
 int N_LIGHTS;
 int ANTIALIASING;
 int SHADOWS;
 
-
 int write_truecolor_tga() {
     FILE *fp = fopen("out.tga", "w");
     if (fp == NULL) return 0;
 
-// The image header
+    // The image header
     char header[18] = {0}; // char = byte
     header[2] = 2; // truecolor
     header[12] = H_SIZE & 0xFF;
@@ -48,7 +46,7 @@ int write_truecolor_tga() {
 
     fwrite((const char *) &header, 1, sizeof(header), fp);
 
-// The image data is stored bottom-to-top, left-to-right
+    // The image data is stored bottom-to-top, left-to-right
     for (int y = V_SIZE - 1; y >= 0; y--)
         for (int x = 0; x < H_SIZE; x++) {
             fputc((int) (buffer[x][y].B * 255), fp);
@@ -56,7 +54,7 @@ int write_truecolor_tga() {
             fputc((int) (buffer[x][y].R * 255), fp);
         }
 
-// The file footer
+    // The file footer
     static const char footer[26] =
             "\0\0\0\0" // no extension area
             "\0\0\0\0" // no developer directory
@@ -88,47 +86,172 @@ float myPow(float num, int exp){
 	return res;
 }
 
+POINT dot(POINT a, POINT b) {
+    POINT dot;
+    dot.x = a.z*b.y - a.y*b.z;
+    dot.y = -(a.x*b.z - a.z*b.z);
+    dot.z = a.x*b.y - a.y*b.x;
+    return dot;
+}
+
+POINT T(POINT P, int Dx, int Dy) {
+    P.x += Dx;
+    P.y += Dy;
+    return P;
+}
+
+bool esta_punto_poly(POLYGON* poly, POINT punto){
+    float X;
+    float Y;
+    float testx;
+    float testy;
+    POINT points[poly->n_points];
+
+    int cases;
+
+    if (fabs (poly->plane->normal.x) > fabs (poly->plane->normal.y) && fabs (poly->plane->normal.x) > fabs (poly->plane->normal.z) ){
+        cases = 0;
+    } else if (fabs (poly->plane->normal.y) > fabs (poly->plane->normal.x) && fabs (poly->plane->normal.y) > fabs (poly->plane->normal.z) ){
+        cases = 1;
+    } else {
+        cases = 2;
+    }
+
+//    testx = punto.x;
+//    testy = punto.y;
+
+    for (int i = 0; i < poly->n_points; ++i){
+        if (cases == 0){
+            points[i].x = poly->points[i]->y - punto.y;
+            points[i].y = poly->points[i]->z - punto.z;
+            testx = punto.y;
+            testy = punto.z;
+        } else if (cases == 1) {
+            points[i].x = poly->points[i]->x - punto.x;
+            points[i].y = poly->points[i]->z - punto.z;
+            testx = punto.x;
+            testy = punto.z;
+        }
+        else {
+            points[i].x = poly->points[i]->x - punto.x;
+            points[i].y = poly->points[i]->y - punto.y;
+            testx = punto.x;
+            testy = punto.y;
+        }
+    }
+
+    int i, j, c = 0;
+    for (i = 0, j = poly->n_points-1; i < poly->n_points; j = i++) {
+        if ( ((points[i].y>testy) != (points[j].y>testy)) &&
+             (testx < (points[j].x-points[i].x) * (testy-points[i].y) / (points[j].y-points[i].y) + points[i].x) )
+            c = !c;
+    }
+    return c;
+}
+
 void loadScene(){
 	scanf("H_SIZE %d\n",&H_SIZE);
 	scanf("V_SIZE %d\n",&V_SIZE);
 	scanf("ANTIALIASING %d\n",&ANTIALIASING);
 	scanf("SHADOWS %d\n",&SHADOWS);
-	scanf("N_SPHERES %d\n",&N_SPHERES);
 
+	scanf("N_POLYGONS %d\n",&N_POLYGONS);
 	printf("H_SIZE %d\n",H_SIZE);
 	printf("V_SIZE %d\n",V_SIZE);
 	printf("ANTIALIASING %d\n",ANTIALIASING);
 	printf("SHADOWS %d\n",SHADOWS);
-	printf("N_SPHERES %d\n",N_SPHERES);
+	printf("N_POLYGONS %d\n",N_POLYGONS);
 
-	spheres = malloc(sizeof(SPHERE*)*N_SPHERES);
+	polygons = malloc(sizeof(POLYGON*)*N_POLYGONS);
 
-	for (int i = 0; i < N_SPHERES; ++i)
+
+    for (int i = 0; i < N_POLYGONS; ++i) {
+        POINT a;
+        POINT b;
+        POINT c;
+        int n_points;
+        scanf("N_POINTS %d\n",&n_points);
+        printf("N_POINTS %d\n",n_points);
+
+        polygons[i] = malloc(sizeof(POLYGON));
+        polygons[i]->points = malloc(sizeof(POINT)*n_points);
+
+        for (int k = 0; k < n_points; ++k)
+        {
+            polygons[i]->points[k] = malloc(sizeof(POINT));
+            scanf("x %f y %f z %f\n", &polygons[i]->points[k]->x, &polygons[i]->points[k]->y, &polygons[i]->points[k]->z);
+            printf("x %f y %f z %f\n", polygons[i]->points[k]->x, polygons[i]->points[k]->y, polygons[i]->points[k]->z);
+        }
+
+        polygons[i]->plane = malloc(sizeof(PLANE));
+        //Se crean los vectores de direccion
+        POINT A;
+        A.x = polygons[i]->points[1]->x - polygons[i]->points[0]->x;
+        A.y = polygons[i]->points[1]->y - polygons[i]->points[0]->y;
+        A.z = polygons[i]->points[1]->z - polygons[i]->points[0]->z;
+        POINT B;
+        B.x = polygons[i]->points[2]->x - polygons[i]->points[0]->x;
+        B.y = polygons[i]->points[2]->y - polygons[i]->points[0]->y;
+        B.z = polygons[i]->points[2]->z - polygons[i]->points[0]->z;
+
+        polygons[i]->plane->normal = dot(A, B);
+        polygons[i]->plane->object.center.x = polygons[i]->points[0]->x;
+        polygons[i]->plane->object.center.y = polygons[i]->points[0]->y;
+        polygons[i]->plane->object.center.z = polygons[i]->points[0]->z;
+
+        scanf("R %f\n",&polygons[i]->plane->object.color.R);
+        scanf("G %f\n",&polygons[i]->plane->object.color.G);
+        scanf("B %f\n",&polygons[i]->plane->object.color.B);
+        scanf("Ka %f\n",&polygons[i]->plane->object.Ka);
+        scanf("Kd %f\n",&polygons[i]->plane->object.Kd);
+        scanf("Ks %f\n",&polygons[i]->plane->object.Ks);
+        scanf("Kn %f\n",&polygons[i]->plane->object.Kn);
+
+        printf("x %f\n",polygons[i]->plane->object.center.x);
+        printf("y %f\n",polygons[i]->plane->object.center.y);
+        printf("z %f\n",polygons[i]->plane->object.center.z);
+        printf("x %f\n",polygons[i]->plane->normal.x);
+        printf("y %f\n",polygons[i]->plane->normal.y);
+        printf("z %f\n",polygons[i]->plane->normal.z);
+        printf("R %f\n",polygons[i]->plane->object.color.R);
+        printf("G %f\n",polygons[i]->plane->object.color.G);
+        printf("B %f\n",polygons[i]->plane->object.color.B);
+        printf("Ka %f\n",polygons[i]->plane->object.Ka);
+        printf("Kd %f\n",polygons[i]->plane->object.Kd);
+        printf("Ks %f\n",polygons[i]->plane->object.Ks);
+        printf("Kn %f\n",polygons[i]->plane->object.Kn);
+    }
+
+    scanf("N_SPHERES %d\n",&N_SPHERES);
+    spheres = malloc(sizeof(SPHERE*)*N_SPHERES);
+    printf("N_SPHERES %d\n",N_SPHERES);
+
+    for (int i = 0; i < N_SPHERES; ++i)
 	{
 		spheres[i] = malloc(sizeof(SPHERE));
 	    scanf("radius %f\n",&spheres[i]->radius);
-	    scanf("x %f\n",&spheres[i]->center.x);
-	    scanf("y %f\n",&spheres[i]->center.y);
-	    scanf("z %f\n",&spheres[i]->center.z);
-	    scanf("R %f\n",&spheres[i]->color.R);
-	    scanf("G %f\n",&spheres[i]->color.G);
-	    scanf("B %f\n",&spheres[i]->color.B);
-	    scanf("Ka %f\n",&spheres[i]->Ka);
-	    scanf("Kd %f\n",&spheres[i]->Kd);
-	    scanf("Ks %f\n",&spheres[i]->Ks);
-	    scanf("Kn %f\n",&spheres[i]->Kn);
+	    scanf("x %f\n",&spheres[i]->object.center.x);
+	    scanf("y %f\n",&spheres[i]->object.center.y);
+	    scanf("z %f\n",&spheres[i]->object.center.z);
+	    scanf("R %f\n",&spheres[i]->object.color.R);
+	    scanf("G %f\n",&spheres[i]->object.color.G);
+	    scanf("B %f\n",&spheres[i]->object.color.B);
+	    scanf("Ka %f\n",&spheres[i]->object.Ka);
+	    scanf("Kd %f\n",&spheres[i]->object.Kd);
+	    scanf("Ks %f\n",&spheres[i]->object.Ks);
+	    scanf("Kn %f\n",&spheres[i]->object.Kn);
 
 	    printf("radius %f\n",spheres[i]->radius);
-	    printf("x %f\n",spheres[i]->center.x);
-	    printf("y %f\n",spheres[i]->center.y);
-	    printf("z %f\n",spheres[i]->center.z);
-	    printf("R %f\n",spheres[i]->color.R);
-	    printf("G %f\n",spheres[i]->color.G);
-	    printf("B %f\n",spheres[i]->color.B);
-	    printf("Ka %f\n",spheres[i]->Ka);
-	    printf("Kd %f\n",spheres[i]->Kd);
-	    printf("Ks %f\n",spheres[i]->Ks);
-	    printf("Kn %f\n",spheres[i]->Kn);
+	    printf("x %f\n",spheres[i]->object.center.x);
+	    printf("y %f\n",spheres[i]->object.center.y);
+	    printf("z %f\n",spheres[i]->object.center.z);
+	    printf("R %f\n",spheres[i]->object.color.R);
+	    printf("G %f\n",spheres[i]->object.color.G);
+	    printf("B %f\n",spheres[i]->object.color.B);
+	    printf("Ka %f\n",spheres[i]->object.Ka);
+	    printf("Kd %f\n",spheres[i]->object.Kd);
+	    printf("Ks %f\n",spheres[i]->object.Ks);
+	    printf("Kn %f\n",spheres[i]->object.Kn);
 	}
 
 	scanf("N_LIGHTS %d\n",&N_LIGHTS);
@@ -154,8 +277,6 @@ void loadScene(){
 
 }
 
-
-
 void init() {
     srand (time(NULL));
 
@@ -169,7 +290,7 @@ void init() {
     color.G = 0;
     color.B = 0;
 
-    background.R = 0.03;
+    background.R = 0.3;
     background.G = 0;
     background.B = 0.1;
 
@@ -182,16 +303,14 @@ void init() {
 }
 
 
-
-
 INTERSECTION IntersectionSphere(SPHERE *sphere, POINT e, POINT d){
     INTERSECTION intersection;
     //float a = pow((d.x - e.x), 2.0) + pow((d.y - e.y), 2.0) + pow((d.z - e.z), 2.0);
     float a = 1;
-    float b = 2.0 * ((d.x )*( e.x - sphere->center.x) + (d.y )*( e.y - sphere->center.y) +
-                     (d.z )*( e.z - sphere->center.z));
-    float g = myPow((e.x - sphere->center.x), 2.0) + myPow((e.y - sphere->center.y), 2.0) +
-              myPow((e.z - sphere->center.z), 2.0) - myPow(sphere->radius, 2.0);
+    float b = 2.0 * ((d.x )*( e.x - sphere->object.center.x) + (d.y )*( e.y - sphere->object.center.y) +
+                     (d.z )*( e.z - sphere->object.center.z));
+    float g = myPow((e.x - sphere->object.center.x), 2.0) + myPow((e.y - sphere->object.center.y), 2.0) +
+              myPow((e.z - sphere->object.center.z), 2.0) - myPow(sphere->radius, 2.0);
     float delta = myPow(b, 2.0) - 4.0 * g * a;
 
 
@@ -215,7 +334,27 @@ INTERSECTION IntersectionSphere(SPHERE *sphere, POINT e, POINT d){
         }
     }
     if(intersection.t < -0.001)intersection.t = INF;
-    intersection.object = (void*)sphere;
+    intersection.object = sphere->object;
+    return intersection;
+}
+
+INTERSECTION IntersectionPoly(POLYGON *polygon, POINT e, POINT d){
+    INTERSECTION intersection;
+    PLANE* plane = polygon->plane;
+
+    long double D = -(plane->normal.x * plane->object.center.x + plane->normal.y * plane->object.center.y + plane->normal.z * plane->object.center.z);
+
+    intersection.t =
+            ((plane->normal.x * e.x + plane->normal.y * e.y + plane->normal.z * e.z) + D )
+            / (plane->normal.x * d.x + plane->normal.y * d.y + plane->normal.z * d.z);
+
+    POINT intersection_point;
+    intersection_point.x = e.x + intersection.t*d.x;
+    intersection_point.y = e.y + intersection.t*d.y;
+    intersection_point.z = e.z + intersection.t*d.z;
+
+    if(intersection.t < -0.001 || esta_punto_poly(polygon, intersection_point))intersection.t = INF;
+    intersection.object = plane->object;
     return intersection;
 }
 
@@ -229,26 +368,34 @@ INTERSECTION First_Intersection(POINT e, POINT d) {
     {
         auxIntersection = IntersectionSphere(spheres[i], e, d);
         if(auxIntersection.t > (float)SHADOW_K){
-        	if(auxIntersection.t >= 0 && auxIntersection.t < intersection.t)intersection = auxIntersection;
+        	if(auxIntersection.t >= 0 && auxIntersection.t < intersection.t) intersection = auxIntersection;
         }
-        
+
     }
+
+    for (int i = 0; i < N_POLYGONS; ++i)
+    {
+        auxIntersection = IntersectionPoly(polygons[i], e, d);
+        if(auxIntersection.t > (float)SHADOW_K){
+            if(auxIntersection.t >= 0 && auxIntersection.t < intersection.t) intersection = auxIntersection;
+        }
+
+    }
+
     return intersection;
 }
 
-
 COLOR De_que_color(POINT e, POINT d) {
-    COLOR color;
     INTERSECTION intersection;
     intersection = First_Intersection(e, d);
+    COLOR color = intersection.object.color;
 
     if (intersection.t == INF){
         color = background;
     }
 
     else {
-        SPHERE *obj = (SPHERE *) intersection.object;
-        color = obj->color;
+        OBJ obj = intersection.object;
 
         POINT intersectionPoint;
         float intensity = 0;
@@ -259,9 +406,9 @@ COLOR De_que_color(POINT e, POINT d) {
         intersectionPoint.z = e.z + intersection.t * d.z;
         float n;
         POINT N;
-        N.x = intersectionPoint.x - obj->center.x;
-        N.y = intersectionPoint.y - obj->center.y;
-        N.z = intersectionPoint.z - obj->center.z;
+        N.x = intersectionPoint.x - obj.center.x;
+        N.y = intersectionPoint.y - obj.center.y;
+        N.z = intersectionPoint.z - obj.center.z;
         n = sqrt(myPow(N.x, 2) + myPow(N.y, 2) + myPow(N.z, 2));
         N.x /=n;
         N.y /=n;
@@ -315,8 +462,8 @@ COLOR De_que_color(POINT e, POINT d) {
 
 				
 
-				if(cosVR > 0)E += (myPow(cosVR,obj->Kn) * obj->Ks * lights[i]->intensity * Fatt);
-	            if(cosNL > 0)intensity += (cosNL * obj->Kd * lights[i]->intensity * Fatt);
+				if(cosVR > 0)E += (myPow(cosVR,obj.Kn) * obj.Ks * lights[i]->intensity * Fatt);
+	            if(cosNL > 0)intensity += (cosNL * obj.Kd * lights[i]->intensity * Fatt);
             }
             
             //printf("Fatt %f\n", n );
@@ -324,7 +471,7 @@ COLOR De_que_color(POINT e, POINT d) {
             
         }
 
-        intensity += obj->Ka * AmbientIlluminationIntensity;
+        intensity += obj.Ka * AmbientIlluminationIntensity;
         
         if(intensity>1.0)intensity=1.0;
 		if(E>1.0)E=1.0;
@@ -418,6 +565,7 @@ int main(int argc, char **argv) {
     raytracer();
     write_truecolor_tga();
 
+    system("convert out.tga out.png");
     printf("Fin del programa %s...\n\n", argv[0]);
 
 

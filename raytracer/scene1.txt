@@ -2,6 +2,18 @@ H_SIZE 1008
 V_SIZE 567
 ANTIALIASING 1
 SHADOWS 1
+N_POLYGONS 1
+N_POINTS 3
+x 100 y 200 z 1
+x 600 y 200 z 0
+x 300 y 100 z 500
+R 0
+G 1
+B 0
+Ka 1
+Kd 1
+Ks 0
+Kn 1
 N_SPHERES 2
 radius 100
 x 500
@@ -14,8 +26,8 @@ Ka 0.3
 Kd 0.8
 Ks 1
 Kn 10
-radius 10
-x 500
+radius 15
+x 550
 y 290
 z 50
 R 0
@@ -25,7 +37,7 @@ Ka 1
 Kd 1
 Ks 0
 Kn 1
-N_LIGHTS 2
+N_LIGHTS 3
 x 550
 y 290
 z 0
@@ -34,4 +46,8 @@ x 450
 y 290
 z 20
 intensity 0.7
+x 500
+y 250
+z -100
+intensity 0.8
 

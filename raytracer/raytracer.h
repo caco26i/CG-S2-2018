@@ -20,19 +20,36 @@ typedef struct {
 } COLOR;
 
 typedef struct {
-    int type;
-    float radius;
     POINT center;
     COLOR color;
     float Ka;
     float Kd;
     float Ks;
     float Kn;
+} OBJ;
+
+typedef struct {
+    int type;
+    float radius;
+    OBJ object;
 } SPHERE;
 
 typedef struct {
+    int type;
+    POINT normal;
+    OBJ object;
+} PLANE;
+
+typedef struct {
+    int n_points;
+    POINT** points;
+    PLANE* plane;
+} POLYGON;
+
+typedef struct {
     float t;
-    void* object;
+    OBJ object;
+    COLOR color;
     bool set;
 } INTERSECTION;
 
@@ -51,6 +68,7 @@ COLOR **buffer;
 COLOR color;
 COLOR background;
 SPHERE **spheres;
+POLYGON **polygons;
 VIEWPORT viewport;
 LIGHT **lights;
 
