@@ -288,7 +288,7 @@ COLOR De_que_color(POINT e, POINT d) {
             if(SHADOWS){
             	intersectionLight = First_Intersection(intersectionPoint, L);
             	
-	            if (intersectionLight.t != INF){
+	            if (intersectionLight.t != INF && intersectionLight.t < n){
 	            	lid = false;
 			    }
             }
