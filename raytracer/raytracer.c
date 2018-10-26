@@ -314,9 +314,12 @@ COLOR De_que_color(POINT e, POINT d) {
             	cosVR = (V.x * R.x + V.y * R.y + V.z * R.z);
 
 				
-
-				if(cosVR > 0)E += (myPow(cosVR,obj->Kn) * obj->Ks * lights[i]->intensity * Fatt);
-	            if(cosNL > 0)intensity += (cosNL * obj->Kd * lights[i]->intensity * Fatt);
+            	if(cosNL > 0){
+            		if(cosVR > 0)E += (myPow(cosVR,obj->Kn) * obj->Ks * lights[i]->intensity * Fatt);
+            		intensity += (cosNL * obj->Kd * lights[i]->intensity * Fatt);
+            	}
+				
+	            
             }
             
             //printf("Fatt %f\n", n );
@@ -422,4 +425,21 @@ int main(int argc, char **argv) {
 
 
     return 1;
+}
+
+
+V = -D;
+for (k = 0; k < N_lights; k++){
+	/*Calculos para cada luz*/
+	L = vector unitario hacia Luz k
+	Fatt = calcular factor de atenuacion;
+	if (( N * L ) > 0.0){
+	obstaculo = First_Intersection ( (Xi, Yi, Zi), L);
+		if(! obstaculo || distancia a obstaculo > distancia a luz){
+			I += ((N*L) * Q.Kd * Fatt * Light[k].Ip);
+			R = vector reflejo de L respecto a N;
+			if((V*R) > 0.0)
+				E +=
+		}
+	}
 }
