@@ -435,7 +435,7 @@ COLOR De_que_color(POINT e, POINT d) {
             if(SHADOWS){
             	intersectionLight = First_Intersection(intersectionPoint, L);
             	
-	            if (intersectionLight.t != INF){
+	            if (intersectionLight.t != INF && intersectionLight.t < n){
 	            	lid = false;
 			    }
             }
@@ -461,9 +461,12 @@ COLOR De_que_color(POINT e, POINT d) {
             	cosVR = (V.x * R.x + V.y * R.y + V.z * R.z);
 
 				
+            	if(cosNL > 0){
+            		if(cosVR > 0)E += (myPow(cosVR,obj.Kn) * obj.Ks * lights[i]->intensity * Fatt);
+            		intensity += (cosNL * obj.Kd * lights[i]->intensity * Fatt);
+            	}
 
-				if(cosVR > 0)E += (myPow(cosVR,obj.Kn) * obj.Ks * lights[i]->intensity * Fatt);
-	            if(cosNL > 0)intensity += (cosNL * obj.Kd * lights[i]->intensity * Fatt);
+
             }
             
             //printf("Fatt %f\n", n );
@@ -571,3 +574,4 @@ int main(int argc, char **argv) {
 
     return 1;
 }
+
