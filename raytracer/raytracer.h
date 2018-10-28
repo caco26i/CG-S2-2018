@@ -38,6 +38,17 @@ typedef struct {
     float Kn;
 } SPHERE;
 
+typedef struct {
+    int type;
+    POINT normal;
+    POINT center;
+} PLANE;
+
+typedef struct {
+    int n_points;
+    POINT** points;
+    PLANE* plane;
+} POLYGON;
 
 typedef struct {
     POINT pos;
