@@ -501,7 +501,7 @@ COLOR De_que_color(POINT e, POINT d) {
             	POINT R;
             	POINT V;
 
-            	Fatt = fmin(1.0,1.0 / (myPow(n/100.0,2)));
+            	Fatt = fmin(1.0,1.0 / (myPow(n/(lights[i]->intensity * 1000.0),2)));
 
             	cosNL = (L.x * N.x + L.y * N.y + L.z * N.z);
 
