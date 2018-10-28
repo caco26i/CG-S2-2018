@@ -19,8 +19,16 @@ typedef struct {
     float B;
 } COLOR;
 
+
+typedef struct {
+    float t;
+    void* object;
+    bool set;
+} INTERSECTION;
+
 typedef struct {
     int type;
+    INTERSECTION (*fun_ptr)(void*,POINT,POINT); 
     float radius;
     POINT center;
     COLOR color;
@@ -30,11 +38,6 @@ typedef struct {
     float Kn;
 } SPHERE;
 
-typedef struct {
-    float t;
-    void* object;
-    bool set;
-} INTERSECTION;
 
 typedef struct {
     POINT pos;
@@ -50,7 +53,7 @@ POINT eye;
 COLOR **buffer;
 COLOR color;
 COLOR background;
-SPHERE **spheres;
+void**objects;
 VIEWPORT viewport;
 LIGHT **lights;
 

@@ -88,6 +88,42 @@ float myPow(float num, int exp){
 	return res;
 }
 
+INTERSECTION IntersectionSphere(void* inSphere, POINT e, POINT d){
+	SPHERE* sphere = (SPHERE*)inSphere;
+    INTERSECTION intersection;
+    //float a = pow((d.x - e.x), 2.0) + pow((d.y - e.y), 2.0) + pow((d.z - e.z), 2.0);
+    float a = 1;
+    float b = 2.0 * ((d.x )*( e.x - sphere->center.x) + (d.y )*( e.y - sphere->center.y) +
+                     (d.z )*( e.z - sphere->center.z));
+    float g = myPow((e.x - sphere->center.x), 2.0) + myPow((e.y - sphere->center.y), 2.0) +
+              myPow((e.z - sphere->center.z), 2.0) - myPow(sphere->radius, 2.0);
+    float delta = myPow(b, 2.0) - 4.0 * g * a;
+
+
+    if(delta < -0.001){
+        intersection.t = INF;
+    }else if(delta < 0.001){
+        intersection.t = -b/(2.0*a);
+
+    }else{
+        float t1,t2;
+        t1 = (-b + sqrt(delta))/(2.0*a);
+        t2 = (-b - sqrt(delta))/(2.0*a);
+        if(t1 < -0.001 && t2 < -0.001){
+            intersection.t = INF;
+        }else if(t1 < -0.001){
+            intersection.t = t2;
+        }else if(t2 < -0.001){
+            intersection.t = t1;
+        }else{
+            intersection.t = (t1<t2)?t1:t2;
+        }
+    }
+    if(intersection.t < -0.001)intersection.t = INF;
+    intersection.object = (void*)sphere;
+    return intersection;
+}
+
 void loadScene(){
 	scanf("H_SIZE %d\n",&H_SIZE);
 	scanf("V_SIZE %d\n",&V_SIZE);
@@ -101,34 +137,36 @@ void loadScene(){
 	printf("SHADOWS %d\n",SHADOWS);
 	printf("N_SPHERES %d\n",N_SPHERES);
 
-	spheres = malloc(sizeof(SPHERE*)*N_SPHERES);
+	objects = malloc(sizeof(void*)*N_SPHERES);
 
 	for (int i = 0; i < N_SPHERES; ++i)
 	{
-		spheres[i] = malloc(sizeof(SPHERE));
-	    scanf("radius %f\n",&spheres[i]->radius);
-	    scanf("x %f\n",&spheres[i]->center.x);
-	    scanf("y %f\n",&spheres[i]->center.y);
-	    scanf("z %f\n",&spheres[i]->center.z);
-	    scanf("R %f\n",&spheres[i]->color.R);
-	    scanf("G %f\n",&spheres[i]->color.G);
-	    scanf("B %f\n",&spheres[i]->color.B);
-	    scanf("Ka %f\n",&spheres[i]->Ka);
-	    scanf("Kd %f\n",&spheres[i]->Kd);
-	    scanf("Ks %f\n",&spheres[i]->Ks);
-	    scanf("Kn %f\n",&spheres[i]->Kn);
+		objects[i] = (void*)malloc(sizeof(SPHERE));
+		SPHERE* auxSphere = (SPHERE*)objects[i];
+	    scanf("radius %f\n",&auxSphere->radius);
+	    scanf("x %f\n",&auxSphere->center.x);
+	    scanf("y %f\n",&auxSphere->center.y);
+	    scanf("z %f\n",&auxSphere->center.z);
+	    scanf("R %f\n",&auxSphere->color.R);
+	    scanf("G %f\n",&auxSphere->color.G);
+	    scanf("B %f\n",&auxSphere->color.B);
+	    scanf("Ka %f\n",&auxSphere->Ka);
+	    scanf("Kd %f\n",&auxSphere->Kd);
+	    scanf("Ks %f\n",&auxSphere->Ks);
+	    scanf("Kn %f\n",&auxSphere->Kn);
+	    auxSphere->fun_ptr = &IntersectionSphere;
 
-	    printf("radius %f\n",spheres[i]->radius);
-	    printf("x %f\n",spheres[i]->center.x);
-	    printf("y %f\n",spheres[i]->center.y);
-	    printf("z %f\n",spheres[i]->center.z);
-	    printf("R %f\n",spheres[i]->color.R);
-	    printf("G %f\n",spheres[i]->color.G);
-	    printf("B %f\n",spheres[i]->color.B);
-	    printf("Ka %f\n",spheres[i]->Ka);
-	    printf("Kd %f\n",spheres[i]->Kd);
-	    printf("Ks %f\n",spheres[i]->Ks);
-	    printf("Kn %f\n",spheres[i]->Kn);
+	    printf("radius %f\n",auxSphere->radius);
+	    printf("x %f\n",auxSphere->center.x);
+	    printf("y %f\n",auxSphere->center.y);
+	    printf("z %f\n",auxSphere->center.z);
+	    printf("R %f\n",auxSphere->color.R);
+	    printf("G %f\n",auxSphere->color.G);
+	    printf("B %f\n",auxSphere->color.B);
+	    printf("Ka %f\n",auxSphere->Ka);
+	    printf("Kd %f\n",auxSphere->Kd);
+	    printf("Ks %f\n",auxSphere->Ks);
+	    printf("Kn %f\n",auxSphere->Kn);
 	}
 
 	scanf("N_LIGHTS %d\n",&N_LIGHTS);
@@ -184,40 +222,7 @@ void init() {
 
 
 
-INTERSECTION IntersectionSphere(SPHERE *sphere, POINT e, POINT d){
-    INTERSECTION intersection;
-    //float a = pow((d.x - e.x), 2.0) + pow((d.y - e.y), 2.0) + pow((d.z - e.z), 2.0);
-    float a = 1;
-    float b = 2.0 * ((d.x )*( e.x - sphere->center.x) + (d.y )*( e.y - sphere->center.y) +
-                     (d.z )*( e.z - sphere->center.z));
-    float g = myPow((e.x - sphere->center.x), 2.0) + myPow((e.y - sphere->center.y), 2.0) +
-              myPow((e.z - sphere->center.z), 2.0) - myPow(sphere->radius, 2.0);
-    float delta = myPow(b, 2.0) - 4.0 * g * a;
 
-
-    if(delta < -0.001){
-        intersection.t = INF;
-    }else if(delta < 0.001){
-        intersection.t = -b/(2.0*a);
-
-    }else{
-        float t1,t2;
-        t1 = (-b + sqrt(delta))/(2.0*a);
-        t2 = (-b - sqrt(delta))/(2.0*a);
-        if(t1 < -0.001 && t2 < -0.001){
-            intersection.t = INF;
-        }else if(t1 < -0.001){
-            intersection.t = t2;
-        }else if(t2 < -0.001){
-            intersection.t = t1;
-        }else{
-            intersection.t = (t1<t2)?t1:t2;
-        }
-    }
-    if(intersection.t < -0.001)intersection.t = INF;
-    intersection.object = (void*)sphere;
-    return intersection;
-}
 
 INTERSECTION First_Intersection(POINT e, POINT d) {
     float tmin;
@@ -227,7 +232,7 @@ INTERSECTION First_Intersection(POINT e, POINT d) {
 
     for (int i = 0; i < N_SPHERES; ++i)
     {
-        auxIntersection = IntersectionSphere(spheres[i], e, d);
+        auxIntersection = IntersectionSphere(objects[i], e, d);
         if(auxIntersection.t > (float)SHADOW_K){
         	if(auxIntersection.t >= 0 && auxIntersection.t < intersection.t)intersection = auxIntersection;
         }
@@ -426,4 +431,3 @@ int main(int argc, char **argv) {
 
     return 1;
 }
-
