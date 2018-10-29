@@ -38,12 +38,14 @@ typedef struct {
     int type;
     POINT normal;
     OBJ object;
+    float D;
 } PLANE;
 
 typedef struct {
     int n_points;
     POINT** points;
     PLANE* plane;
+    int cases;
 } POLYGON;
 
 typedef struct {
