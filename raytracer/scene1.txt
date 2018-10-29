@@ -5,21 +5,41 @@ SHADOWS 1
 N_LIGHTS 2
 N_SPHERES 2
 N_PLANES 1
-N_POLYGONS 0
-radius 100
-x 500 y 290 z 200
+N_POLYGONS 3
+radius 200
+x 425 y 320 z 300
 R 1 G 0 B 0
-Ka 0.3 Kd 1 Ks 1 Kn 10
+Ka 0.4 Kd 0.8 Ks 0.7 Kn 10
 radius 15
-x 550 y 290 z 50
+x 550 y 390 z 50
 R 0 G 0 B 1
 Ka 0.3 Kd 1 Ks 1 Kn 10
+N_POINTS 3
+x 108 y 400 z 100
+x 300 y 475 z 100
+x 100 y 500 z 100
+R 1 G 1 B 0
+Ka 1 Kd 1 Ks 0 Kn 1
+N_POINTS 3
+x 758 y 400 z 100
+x 550 y 475 z 100
+x 750 y 500 z 110
+R 0 G 1 B 1
+Ka 1 Kd 1 Ks 0 Kn 1
+N_POINTS 5
+x 440 y 150 z 0
+x 380 y 348 z 0
+x 530 y 228 z -100
+x 350 y 228 z 0
+x 500 y 348 z -50
+R 0 G 1 B 0
+Ka 1 Kd 1 Ks 0 Kn 1
 x 0 y 0 z 0
 x 1 y 0 z 0
 x 1 y 0 z 1
 R 1 G 1 B 1
 Ka 0.3 Kd 1 Ks 1 Kn 10
-x 200 y 290 z -100
-intensity 0.7
+x 100 y 290 z -100
+intensity 0.9
 x 500 y 250 z -200
-intensity 0.8
+intensity 0.5

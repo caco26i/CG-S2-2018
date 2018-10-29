@@ -32,7 +32,6 @@ typedef struct {
 typedef struct {
 	POINT center;
     POINT normal;
-    OBJ object;
     float D;
 } PLANE;
 
