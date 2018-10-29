@@ -2,129 +2,24 @@ H_SIZE 1008
 V_SIZE 567
 ANTIALIASING 1
 SHADOWS 1
-N_POLYGONS 4
-N_POINTS 2
-x 0 y 500 z 0
-x 0 y 1 z 0
-R 0
-G 1
-B 0
-Ka 0.9 Kd 0.9 Ks 0.5 Kn 10
-N_POINTS 3
-x 108 y 0 z 1
-x 300 y 75 z 1
-x 100 y 100 z 10
-R 0
-G 1
-B 0
-Ka 1
-Kd 1
-Ks 0
-Kn 1
-N_POINTS 3
-x 708 y 200 z 100
-x 500 y 275 z 100
-x 700 y 300 z 110
-R 0
-G 1
-B 0
-Ka 1
-Kd 1
-Ks 0
-Kn 1
-N_POINTS 5
-x 490 y 300 z -0
-x 430 y 498 z -0
-x 580 y 378 z 0
-x 400 y 378 z -0
-x 550 y 498 z -0
-R 0
-G 1
-B 1
-Ka 1
-Kd 1
-Ks 0
-Kn 10
-N_SPHERES 5
-radius 10
-x 108
-y 0
-z 1
-R 1
-G 1
-B 1
-Ka 1
-Kd 1
-Ks 1
-Kn 1
-radius 10
-x 300
-y 75
-z 1
-R 1
-G 1
-B 1
-Ka 1
-Kd 1
-Ks 1
-Kn 1
-radius 10
-x 100
-y 100
-z 10
-R 1
-G 1
-B 1
-Ka 1
-Kd 1
-Ks 1
-Kn 1
-radius 300
-x 650
-y 290
-z 500
-R 1
-G 0
-B 0
-Ka 0.5
-Kd 1
-Ks 1
-Kn 10
-radius 50
-x 600
-y 350
-z 50
-R 0
-G 0
-B 1
-Ka 1
-Kd 1
-Ks 0
-Kn 1
-N_LIGHTS 6
-x 200
-y 200
-z 0
-intensity 1
-x 800
-y 200
-z 0
-intensity 1
-x 200
-y 400
-z 0
-intensity 1
-x 900
-y 400
-z 0
-intensity 1
-x 500
-y 250
-z -50
-intensity 1
-x 500
-y 400
-z -50
-intensity 1
-
-
+N_LIGHTS 2
+N_SPHERES 2
+N_PLANES 1
+N_POLYGONS 0
+radius 100
+x 500 y 290 z 200
+R 1 G 0 B 0
+Ka 0.3 Kd 1 Ks 1 Kn 10
+radius 15
+x 550 y 290 z 50
+R 0 G 0 B 1
+Ka 0.3 Kd 1 Ks 1 Kn 10
+x 0 y 0 z 0
+x 1 y 0 z 0
+x 1 y 0 z 1
+R 1 G 1 B 1
+Ka 0.3 Kd 1 Ks 1 Kn 10
+x 200 y 290 z -100
+intensity 0.7
+x 500 y 250 z -200
+intensity 0.8

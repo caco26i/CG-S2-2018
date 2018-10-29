@@ -6,7 +6,6 @@
  * Programa: Proyecto 1
  * Archivo:  proyecto_1.h
  */
-
 typedef struct {
     float x;
     float y;
@@ -19,23 +18,19 @@ typedef struct {
     float B;
 } COLOR;
 
-typedef struct {
-    POINT center;
-    COLOR color;
-    float Ka;
-    float Kd;
-    float Ks;
-    float Kn;
-} OBJ;
 
 typedef struct {
-    int type;
+    float t;
+    void* object;
+} INTERSECTION;
+
+typedef struct {
     float radius;
-    OBJ object;
+    POINT center;
 } SPHERE;
 
 typedef struct {
-    int type;
+	POINT center;
     POINT normal;
     OBJ object;
     float D;
@@ -48,12 +43,17 @@ typedef struct {
     int cases;
 } POLYGON;
 
+
 typedef struct {
-    float t;
-    OBJ object;
+	INTERSECTION (*fun_ptr)(void*,POINT,POINT);
+    POINT (*norm_ptr)(void*,POINT);
     COLOR color;
-    bool set;
-} INTERSECTION;
+    float Ka;
+    float Kd;
+    float Ks;
+    float Kn;
+    void* object;
+} OBJ;
 
 typedef struct {
     POINT pos;
@@ -69,8 +69,7 @@ POINT eye;
 COLOR **buffer;
 COLOR color;
 COLOR background;
-SPHERE **spheres;
-POLYGON **polygons;
+OBJ* objects;
 VIEWPORT viewport;
 LIGHT **lights;
 
