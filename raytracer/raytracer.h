@@ -21,6 +21,8 @@ typedef struct {
 
 typedef struct {
     float t;
+    float m;
+    POINT collision;
     void* object;
 } INTERSECTION;
 
@@ -42,10 +44,16 @@ typedef struct {
     int cases;
 } POLYGON;
 
+typedef struct {
+    float radius;
+    POINT center;
+    POINT axis;
+} CYLINDER;
+
 
 typedef struct {
 	INTERSECTION (*fun_ptr)(void*,POINT,POINT);
-    POINT (*norm_ptr)(void*,POINT);
+    POINT (*norm_ptr)(INTERSECTION);
     COLOR color;
     float Ka;
     float Kd;
