@@ -7,64 +7,82 @@
  * Archivo:  proyecto_1.h
  */
 typedef struct {
-    float x;
-    float y;
-    float z;
+    double x;
+    double y;
+    double z;
 } POINT;
 
 typedef struct {
-    float R;
-    float G;
-    float B;
+    double R;
+    double G;
+    double B;
 } COLOR;
 
 
 typedef struct {
-    float t;
-    float m;
+    double t;
+    double m;
     POINT collision;
     void* object;
 } INTERSECTION;
 
-typedef struct {
-    float radius;
+typedef struct { // type 1
+    double radius;
     POINT center;
 } SPHERE;
 
-typedef struct {
+typedef struct { // type 2
 	POINT center;
     POINT normal;
-    float D;
+    double D;
 } PLANE;
 
-typedef struct {
+typedef struct { // type 3
     int n_points;
     POINT** points;
     PLANE* plane;
     int cases;
 } POLYGON;
 
-typedef struct {
-    float radius;
+typedef struct { // type 4
+    double radius;
+    double d1;
+    double d2;
     POINT center;
     POINT axis;
 } CYLINDER;
+
+typedef struct { // type 5
+    double radius1;
+    double radius2;
+    PLANE* plane;
+} DISC;
+
+typedef struct { // type 6
+    double radius;
+    POINT center1;
+    POINT center2;
+    POINT normal;
+} OVAL;
 
 
 typedef struct {
 	INTERSECTION (*fun_ptr)(void*,POINT,POINT);
     POINT (*norm_ptr)(INTERSECTION);
     COLOR color;
-    float Ka;
-    float Kd;
-    float Ks;
-    float Kn;
+    double Ka;
+    double Kd;
+    double Ks;
+    double Kn;
     void* object;
+    double O1;
+    double O2;
+    double O3;
 } OBJ;
 
 typedef struct {
     POINT pos;
-    float intensity;
+    double intensity;
 } LIGHT;
 
 typedef struct {
@@ -80,7 +98,7 @@ OBJ* objects;
 VIEWPORT viewport;
 LIGHT **lights;
 
-float AmbientIlluminationIntensity;
+double AmbientIlluminationIntensity;
 
 int window;
 int H_SIZE, V_SIZE;

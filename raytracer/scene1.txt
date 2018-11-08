@@ -1,11 +1,14 @@
 H_SIZE 1008
 V_SIZE 567
+SHOWPROGRESS 1
 ANTIALIASING 1
 SHADOWS 1
-N_LIGHTS 1
-x 200 y 250 z -100
+N_LIGHTS 2
+x 0 y 100 z 0
 intensity 0.9
-N_OBJECTS 7
+x 800 y 100 z 0
+intensity 0.9
+N_OBJECTS 9
 
 type 1
 radius 200
@@ -30,14 +33,16 @@ R 0 G 1 B 0
 Ka 1 Kd 1 Ks 0 Kn 1
 
 type 2
-x 0 y 0 z 0
-x 1 y 0 z 0
-x 1 y 0 z 1
+x 0 y -100 z 0
+x 1 y -100 z 0
+x 1 y -100 z 1
 R 1 G 1 B 1
 Ka 0.3 Kd 1 Ks 1 Kn 10
 
 type 4
 radius 10
+d1 -100
+d2 100
 center x 300 y 500 z -20
 axis x 0 y 0 z 1
 R 0 G 0 B 1
@@ -45,6 +50,8 @@ Ka 0.4 Kd 0.8 Ks 0.8 Kn 20
 
 type 4
 radius 10
+d1 -100
+d2 100
 center x 300 y 500 z -20
 axis x 1 y 0 z 0
 R 1 G 0 B 0
@@ -52,7 +59,29 @@ Ka 0.4 Kd 0.8 Ks 0.8 Kn 20
 
 type 4
 radius 10
+d1 -100
+d2 100
 center x 300 y 500 z -20
 axis x 0 y 1 z 0
 R 0 G 1 B 0
 Ka 0.4 Kd 0.8 Ks 0.8 Kn 20
+
+type 5
+radius1 150
+radius2 200
+center x 300 y 250 z 300
+x 0 y 0 z 0
+x 1 y 0 z 2
+x 1 y 1 z 2
+R 1 G 0 B 1
+Ka 0.3 Kd 1 Ks 0 Kn 1
+
+type 6
+radius 210
+center1 x 700 y 250 z 300
+center2 x 900 y 250 z 300
+x 0 y 0 z 0
+x 1 y 0 z 0
+x 1 y 1 z 0
+R 1 G 1 B 0
+Ka 0.3 Kd 1 Ks 0 Kn 1
