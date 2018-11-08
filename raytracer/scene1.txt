@@ -3,7 +3,9 @@ V_SIZE 567
 SHOWPROGRESS 1
 ANTIALIASING 1
 SHADOWS 1
-eye x 800 y 250 z -1000
+Eye x 500 y 250 z -1000
+Background R 0.03 G 0.0 B 0.1
+Ambient light 0.2
 N_LIGHTS 2
 x 0 y 100 z 0
 intensity 0.9

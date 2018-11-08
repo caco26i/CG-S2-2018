@@ -559,7 +559,9 @@ void loadScene(){
     scanf("SHOWPROGRESS %d\n",&SHOWPROGRESS);
     scanf("ANTIALIASING %d\n",&ANTIALIASING);
     scanf("SHADOWS %d\n",&SHADOWS);
-    scanf("eye x %lf y %lf z %lf\n",&eye.x,&eye.y,&eye.z);
+    scanf("Eye x %lf y %lf z %lf\n",&eye.x,&eye.y,&eye.z);
+    scanf("Background R %lf G %lf B %lf\n",&background.R,&background.G,&background.B);
+    scanf("Ambient light %lf\n",&AmbientIlluminationIntensity);
     scanf("N_LIGHTS %d\n",&N_LIGHTS);
 
     lights = malloc(sizeof(LIGHT*)*N_LIGHTS);
@@ -785,17 +787,6 @@ void loadScene(){
 
 void init() {
     srand (time(NULL));
-
-    AmbientIlluminationIntensity = 0.2;
-
-    color.R = 0;
-    color.G = 0;
-    color.B = 0;
-
-    background.R = 0.3;
-    background.G = 0;
-    background.B = 0.1;
-
     viewport.pmin.x = 0;
     viewport.pmin.y = 0;
     viewport.pmin.z = 0;
