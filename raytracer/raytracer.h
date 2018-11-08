@@ -65,6 +65,13 @@ typedef struct { // type 6
     POINT normal;
 } OVAL;
 
+typedef struct { // type 7
+    double angle;
+    double d1;
+    double d2;
+    POINT center;
+    POINT axis;
+} CONE;
 
 typedef struct {
 	INTERSECTION (*fun_ptr)(void*,POINT,POINT);
@@ -97,6 +104,13 @@ COLOR background;
 OBJ* objects;
 VIEWPORT viewport;
 LIGHT **lights;
+int H_SIZE;
+int V_SIZE;
+int N_LIGHTS;
+int ANTIALIASING;
+int SHADOWS;
+int N_OBJECTS;
+int SHOWPROGRESS;
 
 double AmbientIlluminationIntensity;
 

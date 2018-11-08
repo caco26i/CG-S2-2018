@@ -23,13 +23,7 @@
 #define SHADOW_K 1
 #define DEBUG 0
 
-int H_SIZE;
-int V_SIZE;
-int N_LIGHTS;
-int ANTIALIASING;
-int SHADOWS;
-int N_OBJECTS;
-int SHOWPROGRESS;
+
 
 int write_truecolor_tga() {
     FILE *fp = fopen("out.tga", "w");
@@ -336,8 +330,92 @@ INTERSECTION IntersectionCylinder(void* obj, POINT e, POINT d){
             inter.object = obj;
         }
     }
+            
+    
+    return inter;
+}
+
+INTERSECTION IntersectionCone(void* obj, POINT e, POINT d){
+
+    if(DEBUG)printf("IntersectionCylinder\n");
+    CONE* cone = (CONE*)((OBJ*)obj)->object;
+    
+    INTERSECTION inter;
+
+    POINT X;
+    X.x = e.x - cone->center.x;
+    X.y = e.y - cone->center.y;
+    X.z = e.z - cone->center.z;
+
+    inter.t == INF;
+    double t1,t2;
+    double a = myPow(d.x,2) + myPow(d.y,2) + myPow(d.z,2) - (1 + myPow(cone->angle,2)) * myPow((d.x*cone->axis.x + d.y*cone->axis.y + d.z*cone->axis.z),2);
+
+    double b = 2.0 * (
+        ((d.x )*(X.x) + (d.y )*(X.y) + (d.z)*(X.z)) - 
+        (1 + myPow(cone->angle,2)) * 
+        (d.x*cone->axis.x + d.y*cone->axis.y + d.z*cone->axis.z) * 
+        ((cone->axis.x )*(X.x) + (cone->axis.y)*(X.y) + (cone->axis.z)*(X.z)) );
+
+    double g = 
+            myPow((X.x), 2.0) + myPow((X.y), 2.0) + myPow((X.z), 2.0) -
+            (1 + myPow(cone->angle,2)) * 
+            myPow(((cone->axis.x )*(X.x) + (cone->axis.y)*(X.y) + (cone->axis.z)*(X.z)), 2.0);
+
+    double delta = myPow(b, 2.0) - 4.0 * g * a;
+
+    //printf("%lf\n",delta );
+    if(delta < -0.001){
+        //printf("no hay Colision con Cilindro\n");
+        t1 = INF;
+        t2 = INF;
+    }else if(delta < 0.001){
+        t1 = -b/(2.0*a);
+        t2 = INF;
+
+    }else{
         
-        //inter.m = (d.x*cylinder->axis.x + d.y*cylinder->axis.y + d.z*cylinder->axis.z) * inter.t + ((cylinder->axis.x )*(X.x) + (cylinder->axis.y)*(X.y) + (cylinder->axis.z)*(X.z));
+        t1 = (-b + sqrt(delta))/(2.0*a);
+        t2 = (-b - sqrt(delta))/(2.0*a);
+        if(t1 < -0.001){
+            t1 = INF;
+        }
+        if(t2 < -0.001){
+            t2 = INF;
+        }
+    }
+    double taux = t1;
+    t1 = (taux<t2)?taux:t2;
+    t2 = (taux<t2)?t2:taux;
+  
+    inter.collision.x = e.x + t1 * d.x;
+    inter.collision.y = e.y + t1 * d.y;
+    inter.collision.z = e.z + t1 * d.z;
+    POINT aux;
+    aux.x = inter.collision.x - cone->center.x;
+    aux.y = inter.collision.y - cone->center.y;
+    aux.z = inter.collision.z - cone->center.z;
+
+    double dist = aux.x * cone->axis.x + aux.y * cone->axis.y + aux.z * cone->axis.z;
+    inter.m = dist / sqrt(myPow(cone->axis.x,2) + myPow(cone->axis.y,2) + myPow(cone->axis.z,2));
+    if(inter.m >= cone->d1 && inter.m <= cone->d2){
+        inter.t = t1;
+        inter.object = obj;
+    }else{
+        inter.collision.x = e.x + t2 * d.x;
+        inter.collision.y = e.y + t2 * d.y;
+        inter.collision.z = e.z + t2 * d.z;
+        aux.x = inter.collision.x - cone->center.x;
+        aux.y = inter.collision.y - cone->center.y;
+        aux.z = inter.collision.z - cone->center.z;
+
+        dist = aux.x * cone->axis.x + aux.y * cone->axis.y + aux.z * cone->axis.z;
+        inter.m = dist / sqrt(myPow(cone->axis.x,2) + myPow(cone->axis.y,2) + myPow(cone->axis.z,2));
+        if(inter.m >= cone->d1 && inter.m <= cone->d2){
+            inter.t = t2;
+            inter.object = obj;
+        }
+    }
     
     
     return inter;
@@ -459,12 +537,29 @@ POINT GetNormalCylinder(INTERSECTION inter){
     return N;
 }
 
+POINT GetNormalCone(INTERSECTION inter){
+    
+    CONE* cone = (CONE*)((OBJ*)inter.object)->object;
+    //printf("%lf\n", inter.m);
+    
+    POINT N;
+    N.x = inter.collision.x - cone->center.x - (1 + myPow(cone->angle,2)) * cone->axis.x * inter.m;
+    N.y = inter.collision.y - cone->center.y - (1 + myPow(cone->angle,2)) * cone->axis.y * inter.m;
+    N.x = inter.collision.z - cone->center.z - (1 + myPow(cone->angle,2)) * cone->axis.z * inter.m;
+    double n = sqrt(myPow(N.x, 2) + myPow(N.y, 2) + myPow(N.z, 2));
+    N.x /=n;
+    N.y /=n;
+    N.z /=n;
+    return N;
+}
+
 void loadScene(){
     scanf("H_SIZE %d\n",&H_SIZE);
     scanf("V_SIZE %d\n",&V_SIZE);
     scanf("SHOWPROGRESS %d\n",&SHOWPROGRESS);
     scanf("ANTIALIASING %d\n",&ANTIALIASING);
     scanf("SHADOWS %d\n",&SHADOWS);
+    scanf("eye x %lf y %lf z %lf\n",&eye.x,&eye.y,&eye.z);
     scanf("N_LIGHTS %d\n",&N_LIGHTS);
 
     lights = malloc(sizeof(LIGHT*)*N_LIGHTS);
@@ -666,21 +761,32 @@ void loadScene(){
                 scanf("R %lf G %lf B %lf\n",&objects[i].color.R,&objects[i].color.G,&objects[i].color.B);
                 scanf("Ka %lf Kd %lf Ks %lf Kn %lf\n",&objects[i].Ka,&objects[i].Kd,&objects[i].Ks,&objects[i].Kn);
                 break;
+            case 7: // Cone
+                objects[i].object = (void*)malloc(sizeof(CONE));
+                CONE* auxCone = (CONE*)objects[i].object;
+
+                objects[i].fun_ptr = &IntersectionCone;
+                objects[i].norm_ptr = &GetNormalCone;
+
+                scanf("angle %lf\n",&auxCone->angle);
+                scanf("d1 %lf\n",&auxCone->d1);
+                scanf("d2 %lf\n",&auxCone->d2);
+                scanf("center x %lf y %lf z %lf\n",&auxCone->center.x,&auxCone->center.y,&auxCone->center.z);
+                scanf("axis x %lf y %lf z %lf\n",&auxCone->axis.x,&auxCone->axis.y,&auxCone->axis.z);
+
+                scanf("R %lf G %lf B %lf\n",&objects[i].color.R,&objects[i].color.G,&objects[i].color.B);
+                scanf("Ka %lf Kd %lf Ks %lf Kn %lf\n",&objects[i].Ka,&objects[i].Kd,&objects[i].Ks,&objects[i].Kn);
+                break;
             default:
                 break;
         }
     }
-
 }
 
 void init() {
     srand (time(NULL));
 
     AmbientIlluminationIntensity = 0.2;
-
-    eye.x = H_SIZE;
-    eye.y =  V_SIZE/2;
-    eye.z = -1000;
 
     color.R = 0;
     color.G = 0;

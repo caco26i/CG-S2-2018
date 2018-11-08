@@ -3,12 +3,13 @@ V_SIZE 567
 SHOWPROGRESS 1
 ANTIALIASING 1
 SHADOWS 1
+eye x 800 y 250 z -1000
 N_LIGHTS 2
 x 0 y 100 z 0
 intensity 0.9
 x 800 y 100 z 0
 intensity 0.9
-N_OBJECTS 9
+N_OBJECTS 10
 
 type 1
 radius 200
@@ -85,3 +86,12 @@ x 1 y 0 z 0
 x 1 y 1 z 0
 R 1 G 1 B 0
 Ka 0.3 Kd 1 Ks 0 Kn 1
+
+type 7
+angle 1
+d1 -100
+d2 100
+center x 100 y 250 z 100
+axis x 1 y 0 z 0
+R 1 G 0 B 0
+Ka 0.4 Kd 0.8 Ks 0.8 Kn 20
