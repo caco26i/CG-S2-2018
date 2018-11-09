@@ -18,6 +18,7 @@
 #include <time.h>       /* time */
 #include "raytracer.h"
 
+#define EPSILON 4
 #define N_RAYS 4
 #define INF 10000000
 #define SHADOW_K 1
@@ -161,7 +162,7 @@ INTERSECTION IntersectionPoly(void* obj, POINT e, POINT d){
         intersection_point.y = e.y + inter.t*d.y;
         intersection_point.z = e.z + inter.t*d.z;
 
-        if(inter.t < 0.0001)inter.t = INF;
+        if(inter.t < EPSILON)inter.t = INF;
         else if(polygon->n_points > 2 && !esta_punto_poly(polygon, intersection_point)) inter.t = INF;
 //    else {printf("PUNTO X %lf Y %lf Z %lf\n", intersection_point.x, intersection_point.y, intersection_point.z);}
     }
@@ -197,26 +198,26 @@ INTERSECTION IntersectionSphere(void* obj, POINT e, POINT d){
     double delta = myPow(b, 2.0) - 4.0 * g * a;
 
 
-    if(delta < -0.001){
+    if(delta < EPSILON){
         inter.t = INF;
-    }else if(delta < 0.001){
+    }else if(delta < EPSILON){
         inter.t = -b/(2.0*a);
 
     }else{
         double t1,t2;
         t1 = (-b + sqrt(delta))/(2.0*a);
         t2 = (-b - sqrt(delta))/(2.0*a);
-        if(t1 < -0.001 && t2 < -0.001){
+        if(t1 < EPSILON && t2 < EPSILON){
             inter.t = INF;
-        }else if(t1 < -0.001){
+        }else if(t1 < EPSILON){
             inter.t = t2;
-        }else if(t2 < -0.001){
+        }else if(t2 < EPSILON){
             inter.t = t1;
         }else{
             inter.t = (t1<t2)?t1:t2;
         }
     }
-    if(inter.t < 0.001)inter.t = INF;
+    if(inter.t < EPSILON)inter.t = INF;
     if(inter.t != INF){
         //printf("Colision con Cilindro\n");
         inter.collision.x = e.x + inter.t * d.x;
@@ -237,8 +238,8 @@ INTERSECTION IntersectionPlane(void* obj, POINT e, POINT d){
             ((plane->normal.x * e.x + plane->normal.y * e.y + plane->normal.z * e.z) + D )
             / (plane->normal.x * d.x + plane->normal.y * d.y + plane->normal.z * d.z);
 
-    
-    if(inter.t < -0.001)inter.t = INF;
+
+    if(inter.t < EPSILON)inter.t = INF;
     if(inter.t != INF){
         //printf("Colision con Cilindro\n");
         inter.collision.x = e.x + inter.t * d.x;
@@ -246,7 +247,7 @@ INTERSECTION IntersectionPlane(void* obj, POINT e, POINT d){
         inter.collision.z = e.z + inter.t * d.z;
         inter.object = obj;
     }
-    
+
     return inter;
 }
 
@@ -254,7 +255,7 @@ INTERSECTION IntersectionCylinder(void* obj, POINT e, POINT d){
 
     if(DEBUG)printf("IntersectionCylinder\n");
     CYLINDER* cylinder = (CYLINDER*)((OBJ*)obj)->object;
-    
+
     INTERSECTION inter;
 
     POINT X;
@@ -267,41 +268,41 @@ INTERSECTION IntersectionCylinder(void* obj, POINT e, POINT d){
     double a = myPow(d.x,2) + myPow(d.y,2) + myPow(d.z,2) - myPow((d.x*cylinder->axis.x + d.y*cylinder->axis.y + d.z*cylinder->axis.z),2);
 
     double b = 2.0 * (
-        ((d.x )*(X.x) + (d.y )*(X.y) + (d.z)*(X.z)) - 
-        (d.x*cylinder->axis.x + d.y*cylinder->axis.y + d.z*cylinder->axis.z) * 
+        ((d.x )*(X.x) + (d.y )*(X.y) + (d.z)*(X.z)) -
+        (d.x*cylinder->axis.x + d.y*cylinder->axis.y + d.z*cylinder->axis.z) *
         ((cylinder->axis.x )*(X.x) + (cylinder->axis.y)*(X.y) + (cylinder->axis.z)*(X.z)) );
 
-    double g = 
-            myPow((X.x), 2.0) + myPow((X.y), 2.0) + myPow((X.z), 2.0) - 
-            myPow(((cylinder->axis.x )*(X.x) + (cylinder->axis.y)*(X.y) + (cylinder->axis.z)*(X.z)), 2.0) - 
+    double g =
+            myPow((X.x), 2.0) + myPow((X.y), 2.0) + myPow((X.z), 2.0) -
+            myPow(((cylinder->axis.x )*(X.x) + (cylinder->axis.y)*(X.y) + (cylinder->axis.z)*(X.z)), 2.0) -
             myPow(cylinder->radius, 2.0);
 
     double delta = myPow(b, 2.0) - 4.0 * g * a;
 
     //printf("%lf\n",delta );
-    if(delta < -0.001){
+    if(delta < EPSILON){
         //printf("no hay Colision con Cilindro\n");
         t1 = INF;
         t2 = INF;
-    }else if(delta < 0.001){
+    }else if(delta < EPSILON){
         t1 = -b/(2.0*a);
         t2 = INF;
 
     }else{
-        
+
         t1 = (-b + sqrt(delta))/(2.0*a);
         t2 = (-b - sqrt(delta))/(2.0*a);
-        if(t1 < -0.001){
+        if(t1 < EPSILON){
             t1 = INF;
         }
-        if(t2 < -0.001){
+        if(t2 < EPSILON){
             t2 = INF;
         }
     }
     double taux = t1;
     t1 = (taux<t2)?taux:t2;
     t2 = (taux<t2)?t2:taux;
-  
+
     inter.collision.x = e.x + t1 * d.x;
     inter.collision.y = e.y + t1 * d.y;
     inter.collision.z = e.z + t1 * d.z;
@@ -330,8 +331,8 @@ INTERSECTION IntersectionCylinder(void* obj, POINT e, POINT d){
             inter.object = obj;
         }
     }
-            
-    
+
+
     return inter;
 }
 
@@ -339,7 +340,7 @@ INTERSECTION IntersectionCone(void* obj, POINT e, POINT d){
 
     if(DEBUG)printf("IntersectionCylinder\n");
     CONE* cone = (CONE*)((OBJ*)obj)->object;
-    
+
     INTERSECTION inter;
 
     POINT X;
@@ -352,42 +353,42 @@ INTERSECTION IntersectionCone(void* obj, POINT e, POINT d){
     double a = myPow(d.x,2) + myPow(d.y,2) + myPow(d.z,2) - (1 + myPow(cone->angle,2)) * myPow((d.x*cone->axis.x + d.y*cone->axis.y + d.z*cone->axis.z),2);
 
     double b = 2.0 * (
-        ((d.x )*(X.x) + (d.y )*(X.y) + (d.z)*(X.z)) - 
-        (1 + myPow(cone->angle,2)) * 
-        (d.x*cone->axis.x + d.y*cone->axis.y + d.z*cone->axis.z) * 
+        ((d.x )*(X.x) + (d.y )*(X.y) + (d.z)*(X.z)) -
+        (1 + myPow(cone->angle,2)) *
+        (d.x*cone->axis.x + d.y*cone->axis.y + d.z*cone->axis.z) *
         ((cone->axis.x )*(X.x) + (cone->axis.y)*(X.y) + (cone->axis.z)*(X.z)) );
 
-    double g = 
+    double g =
             myPow((X.x), 2.0) + myPow((X.y), 2.0) + myPow((X.z), 2.0) -
-            (1 + myPow(cone->angle,2)) * 
+            (1 + myPow(cone->angle,2)) *
             myPow(((cone->axis.x )*(X.x) + (cone->axis.y)*(X.y) + (cone->axis.z)*(X.z)), 2.0);
 
     double delta = myPow(b, 2.0) - 4.0 * g * a;
 
     //printf("%lf\n",delta );
-    if(delta < -0.001){
+    if(delta < EPSILON){
         //printf("no hay Colision con Cilindro\n");
         t1 = INF;
         t2 = INF;
-    }else if(delta < 0.001){
+    }else if(delta < EPSILON){
         t1 = -b/(2.0*a);
         t2 = INF;
 
     }else{
-        
+
         t1 = (-b + sqrt(delta))/(2.0*a);
         t2 = (-b - sqrt(delta))/(2.0*a);
-        if(t1 < -0.001){
+        if(t1 < EPSILON){
             t1 = INF;
         }
-        if(t2 < -0.001){
+        if(t2 < EPSILON){
             t2 = INF;
         }
     }
     double taux = t1;
     t1 = (taux<t2)?taux:t2;
     t2 = (taux<t2)?t2:taux;
-  
+
     inter.collision.x = e.x + t1 * d.x;
     inter.collision.y = e.y + t1 * d.y;
     inter.collision.z = e.z + t1 * d.z;
@@ -416,8 +417,8 @@ INTERSECTION IntersectionCone(void* obj, POINT e, POINT d){
             inter.object = obj;
         }
     }
-    
-    
+
+
     return inter;
 }
 
@@ -432,7 +433,7 @@ INTERSECTION IntersectionDisc(void* obj, POINT e, POINT d){
             / (disc->plane->normal.x * d.x + disc->plane->normal.y * d.y + disc->plane->normal.z * d.z);
 
     inter.t = -inter.t;
-    if(inter.t < -0.001)inter.t = INF;
+    if(inter.t < EPSILON)inter.t = INF;
     else{
 
         inter.collision.x = e.x + inter.t * d.x;
@@ -446,8 +447,8 @@ INTERSECTION IntersectionDisc(void* obj, POINT e, POINT d){
             inter.object = obj;
         }
     }
-    
-    
+
+
     return inter;
 }
 
@@ -462,7 +463,7 @@ INTERSECTION IntersectionOval(void* obj, POINT e, POINT d){
             / (oval->normal.x * d.x + oval->normal.y * d.y + oval->normal.z * d.z);
 
     inter.t = -inter.t;
-    if(inter.t < -0.001)inter.t = INF;
+    if(inter.t < EPSILON)inter.t = INF;
     else{
 
         inter.collision.x = e.x + inter.t * d.x;
@@ -782,6 +783,129 @@ void loadScene(){
             default:
                 break;
         }
+    }
+}
+
+void loadSceneTest(){
+    scanf("H_SIZE %d\n",&H_SIZE);
+    scanf("V_SIZE %d\n",&V_SIZE);
+    scanf("SHOWPROGRESS %d\n",&SHOWPROGRESS);
+    scanf("ANTIALIASING %d\n",&ANTIALIASING);
+    scanf("SHADOWS %d\n",&SHADOWS);
+    scanf("Eye x %lf y %lf z %lf\n",&eye.x,&eye.y,&eye.z);
+    scanf("Background R %lf G %lf B %lf\n",&background.R,&background.G,&background.B);
+    scanf("Ambient light %lf\n",&AmbientIlluminationIntensity);
+    scanf("N_LIGHTS %d\n",&N_LIGHTS);
+
+    lights = malloc(sizeof(LIGHT*)*N_LIGHTS);
+
+    for (int i = 0; i < N_LIGHTS; ++i)
+    {
+        lights[i] = malloc(sizeof(LIGHT));
+        scanf("x %lf y %lf z %lf\n",&lights[i]->pos.x,&lights[i]->pos.y,&lights[i]->pos.z);
+        scanf("intensity %lf\n",&lights[i]->intensity);
+        lights[i]->pos.y *=-1;
+    }
+    POINT points[3];
+    POINT A,B;
+    int N_VERTEX;
+    scanf("N_OBJECTS %d\n",&N_VERTEX);
+    N_OBJECTS = N_VERTEX / 3;
+    objects = malloc(sizeof(OBJ)*N_VERTEX);
+    int n_points;
+    int type;
+    COLOR color;
+    scanf("R %lf G %lf B %lf\n",&color.R,&color.G,&color.B);
+    float Ka, Kd, Ks, Kn;
+    scanf("Ka %lf Kd %lf Ks %lf Kn %lf\n",&Ka,&Kd,&Ks,&Kn);
+
+    POLYGON* tempPolygon = (POLYGON*)malloc(sizeof(POLYGON));
+    tempPolygon->points = malloc(sizeof(POINT)*N_VERTEX);
+    tempPolygon->n_points = N_VERTEX;
+
+    for (int k = 0; k < N_VERTEX; ++k)
+    {
+        printf("TEST 1-%d ", k);
+        tempPolygon->points[k] = malloc(sizeof(POINT));
+        scanf("%lf %lf %lf\n", &tempPolygon->points[k]->x, &tempPolygon->points[k]->y, &tempPolygon->points[k]->z);
+        tempPolygon->points[k]->x *= 1000;
+        tempPolygon->points[k]->y *= 1000;
+        tempPolygon->points[k]->z *= 1000;
+
+        tempPolygon->points[k]->x += 200;
+        tempPolygon->points[k]->y += 200;
+
+        printf("%lf %lf %lf\n", tempPolygon->points[k]->x, tempPolygon->points[k]->y, tempPolygon->points[k]->z);
+
+    }
+
+    for (int i = 0; i < N_VERTEX-3; ++i) {
+//        printf("TEST 2-%d ", i);
+
+        n_points = 3;
+
+        objects[i].object = (void *) malloc(sizeof(POLYGON));
+        POLYGON *auxPolygon = (POLYGON *) objects[i].object;
+        auxPolygon->points = malloc(sizeof(POINT) * n_points);
+        auxPolygon->n_points = n_points;
+
+        for (int k = 0; k < n_points; ++k) {
+            auxPolygon->points[k] = malloc(sizeof(POINT));
+
+            auxPolygon->points[k]->x = tempPolygon->points[i+k]->x;
+            auxPolygon->points[k]->y = tempPolygon->points[i+k]->y;
+            auxPolygon->points[k]->z = tempPolygon->points[i+k]->z;
+
+            printf("TEST 2-%d %lf %lf %lf\n", i, auxPolygon->points[k]->x, auxPolygon->points[k]->y, auxPolygon->points[k]->z);
+
+        }
+
+        printf("\n TEST FINAL \n");
+
+        auxPolygon->plane = malloc(sizeof(PLANE));
+
+        //Se crean los vectores de direccion
+        if (n_points >= 3) {
+
+            A.x = auxPolygon->points[1]->x - auxPolygon->points[0]->x;
+            A.y = auxPolygon->points[1]->y - auxPolygon->points[0]->y;
+            A.z = auxPolygon->points[1]->z - auxPolygon->points[0]->z;
+
+            B.x = auxPolygon->points[2]->x - auxPolygon->points[0]->x;
+            B.y = auxPolygon->points[2]->y - auxPolygon->points[0]->y;
+            B.z = auxPolygon->points[2]->z - auxPolygon->points[0]->z;
+
+            auxPolygon->plane->normal = dot(A, B);
+        }
+
+        auxPolygon->plane->D =
+                -((auxPolygon->plane->normal.x * auxPolygon->points[0]->x)
+                  + auxPolygon->plane->normal.y * auxPolygon->points[0]->y
+                  + (auxPolygon->plane->normal.z * auxPolygon->points[0]->z));
+
+        objects[i].fun_ptr = &IntersectionPoly;
+        objects[i].norm_ptr = &GetNormalPoly;
+        auxPolygon->plane->center.x = auxPolygon->points[0]->x;
+        auxPolygon->plane->center.y = auxPolygon->points[0]->y;
+        auxPolygon->plane->center.z = auxPolygon->points[0]->z;
+
+        if (fabs(auxPolygon->plane->normal.x) > fabs(auxPolygon->plane->normal.y) &&
+            fabs(auxPolygon->plane->normal.x) > fabs(auxPolygon->plane->normal.z)) {
+            auxPolygon->cases = 0;
+        } else if (fabs(auxPolygon->plane->normal.y) > fabs(auxPolygon->plane->normal.x) &&
+                   fabs(auxPolygon->plane->normal.y) > fabs(auxPolygon->plane->normal.z)) {
+            auxPolygon->cases = 1;
+        } else if (fabs(auxPolygon->plane->normal.z) > fabs(auxPolygon->plane->normal.x) &&
+                   fabs(auxPolygon->plane->normal.z) > fabs(auxPolygon->plane->normal.y)) {
+            auxPolygon->cases = 2;
+        }
+        objects[i].color.R = color.R;
+        objects[i].color.G = color.G;
+        objects[i].color.B = color.B;
+        objects[i].Ka = Ka;
+        objects[i].Kd = Kd;
+        objects[i].Ks = Ks;
+        objects[i].Kn = Kn;
     }
 }
 
