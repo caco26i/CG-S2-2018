@@ -801,10 +801,10 @@ void init() {
     srand (time(NULL));
     viewport.pmin.x = 0;
     viewport.pmin.y = 0;
-    viewport.pmin.z = 0;
+    viewport.pmin.z = -100;
     viewport.pmax.x = H_SIZE;
     viewport.pmax.y = V_SIZE;
-    viewport.pmax.z = 0;
+    viewport.pmax.z = -100;
 }
 
 INTERSECTION* First_Intersection(POINT e, POINT d, int n) {
@@ -1048,6 +1048,7 @@ COLOR De_que_color(POINT e, POINT d, int c) {
         intersection.collision.z = e.z + intersection.t * d.z;
         double n;
         POINT N = (obj->norm_ptr)(intersection);
+        
         double cos = (N.x * -d.x + N.y * -d.y + N.z * -d.z);
         if(cos < 0){
             N.x *= -1;
@@ -1058,6 +1059,8 @@ COLOR De_que_color(POINT e, POINT d, int c) {
         color.R = color.R * obj->O1;
         color.G = color.G * obj->O1;
         color.B = color.B * obj->O1;
+
+        
         if(c > 0 && obj->O2 > 0.0){
             POINT R;
             double dotNV = N.x * -d.x + N.y * -d.y + N.z * -d.z;
@@ -1072,6 +1075,7 @@ COLOR De_que_color(POINT e, POINT d, int c) {
 
 
         }
+
         if(obj->O3 > 0.0){
             //printf("-------------------------------------------------------------\n");
             COLOR colorTransparentado = De_que_color(intersection.collision, d , 0);
@@ -1079,6 +1083,7 @@ COLOR De_que_color(POINT e, POINT d, int c) {
             color.G += colorTransparentado.G * obj->O3;
             color.B += colorTransparentado.B * obj->O3;
         }
+
         if(obj->Kd > 0.0){
             for (int i = 0; i < N_LIGHTS; ++i)
             {
@@ -1087,7 +1092,7 @@ COLOR De_que_color(POINT e, POINT d, int c) {
                 double Fatt,cosNL,cosVR;
 
                 L.x = lights[i]->pos.x - intersection.collision.x;
-                L.y = lights[i]->pos.y - intersection.collision.y;
+                L.y = -lights[i]->pos.y - intersection.collision.y;
                 L.z = lights[i]->pos.z - intersection.collision.z;
                 n = sqrt(myPow(L.x, 2) + myPow(L.y, 2) + myPow(L.z, 2));
                 L.x /=n;
@@ -1146,7 +1151,8 @@ COLOR De_que_color(POINT e, POINT d, int c) {
             if(intensity>1.0)intensity=1.0;
             if(E>1.0)E=1.0;
 
-            
+            if(intensity < 0.05)intensity = 1;
+            //if(E < 0.05)E = 1;
 
             color.R *=intensity;
             color.G *=intensity;
@@ -1161,6 +1167,7 @@ COLOR De_que_color(POINT e, POINT d, int c) {
         
 
     }
+    //printf("R %lf G %lf B %lf\n",color.R,color.G,color.B);
     return color;
 }
 void raytracer() {
@@ -1183,8 +1190,8 @@ void raytracer() {
         	color.B = 0;
 
         	if(!ANTIALIASING){
-        		w.x = i + 0.5;//((i * (x_max - x_min)) / H_SIZE) + x_min;
-	            w.y = j + 0.5;//((j * (y_max - y_min)) / V_SIZE) + y_min;
+        		w.x = ((i * (x_max - x_min)) / H_SIZE) + x_min;
+	            w.y = ((j * (y_max - y_min)) / V_SIZE) + y_min;
 	            w.z = 0;
 
 	            double L = sqrt(myPow(w.x - eye.x, 2) + myPow(w.y - eye.y, 2) + myPow(w.z - eye.z, 2));
@@ -1220,7 +1227,7 @@ void raytracer() {
 	        	color.B /= N_RAYS;
         	}
 
-            plot(i, j, color);
+            plot(i,V_SIZE - j, color);
         }
     }
     printf("Listo raytracing\n");
