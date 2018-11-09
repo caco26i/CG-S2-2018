@@ -197,7 +197,7 @@ INTERSECTION IntersectionSphere(void* obj, POINT e, POINT d){
     double delta = myPow(b, 2.0) - 4.0 * g * a;
 
 
-    if(delta < -0.001){
+    if(delta < 0.0001){
         inter.t = INF;
     }else if(delta < 0.001){
         inter.t = -b/(2.0*a);
@@ -206,7 +206,7 @@ INTERSECTION IntersectionSphere(void* obj, POINT e, POINT d){
         double t1,t2;
         t1 = (-b + sqrt(delta))/(2.0*a);
         t2 = (-b - sqrt(delta))/(2.0*a);
-        if(t1 < -0.001 && t2 < -0.001){
+        if(t1 < 0.0001 && t2 < 0.0001){
             inter.t = INF;
         }else if(t1 < -0.001){
             inter.t = t2;
@@ -216,7 +216,7 @@ INTERSECTION IntersectionSphere(void* obj, POINT e, POINT d){
             inter.t = (t1<t2)?t1:t2;
         }
     }
-    if(inter.t < 0.001)inter.t = INF;
+    if(inter.t < 0.0001)inter.t = INF;
     if(inter.t != INF){
         //printf("Colision con Cilindro\n");
         inter.collision.x = e.x + inter.t * d.x;
@@ -238,7 +238,7 @@ INTERSECTION IntersectionPlane(void* obj, POINT e, POINT d){
             / (plane->normal.x * d.x + plane->normal.y * d.y + plane->normal.z * d.z);
 
     inter.t *=-1;
-    if(inter.t < -0.001)inter.t = INF;
+    if(inter.t < 0.0001)inter.t = INF;
     if(inter.t != INF){
 
         //printf("Colision con Plano\n");
@@ -280,7 +280,7 @@ INTERSECTION IntersectionCylinder(void* obj, POINT e, POINT d){
     double delta = myPow(b, 2.0) - 4.0 * g * a;
 
     //printf("%lf\n",delta );
-    if(delta < -0.001){
+    if(delta < 0.0001){
         //printf("no hay Colision con Cilindro\n");
         t1 = INF;
         t2 = INF;
@@ -292,10 +292,10 @@ INTERSECTION IntersectionCylinder(void* obj, POINT e, POINT d){
         
         t1 = (-b + sqrt(delta))/(2.0*a);
         t2 = (-b - sqrt(delta))/(2.0*a);
-        if(t1 < -0.001){
+        if(t1 < 0.0001){
             t1 = INF;
         }
-        if(t2 < -0.001){
+        if(t2 < 0.0001){
             t2 = INF;
         }
     }
@@ -366,7 +366,7 @@ INTERSECTION IntersectionCone(void* obj, POINT e, POINT d){
     double delta = myPow(b, 2.0) - 4.0 * g * a;
 
     //printf("%lf\n",delta );
-    if(delta < -0.001){
+    if(delta < 0.0001){
         //printf("no hay Colision con Cilindro\n");
         t1 = INF;
         t2 = INF;
@@ -378,10 +378,10 @@ INTERSECTION IntersectionCone(void* obj, POINT e, POINT d){
         
         t1 = (-b + sqrt(delta))/(2.0*a);
         t2 = (-b - sqrt(delta))/(2.0*a);
-        if(t1 < -0.001){
+        if(t1 < 0.0001){
             t1 = INF;
         }
-        if(t2 < -0.001){
+        if(t2 < 0.0001){
             t2 = INF;
         }
     }
@@ -433,7 +433,7 @@ INTERSECTION IntersectionDisc(void* obj, POINT e, POINT d){
             / (disc->plane->normal.x * d.x + disc->plane->normal.y * d.y + disc->plane->normal.z * d.z);
 
     inter.t = -inter.t;
-    if(inter.t < -0.001)inter.t = INF;
+    if(inter.t < 0.0001)inter.t = INF;
     else{
 
         inter.collision.x = e.x + inter.t * d.x;
@@ -463,7 +463,7 @@ INTERSECTION IntersectionOval(void* obj, POINT e, POINT d){
             / (oval->normal.x * d.x + oval->normal.y * d.y + oval->normal.z * d.z);
 
     inter.t = -inter.t;
-    if(inter.t < -0.001)inter.t = INF;
+    if(inter.t < 0.0001)inter.t = INF;
     else{
 
         inter.collision.x = e.x + inter.t * d.x;
