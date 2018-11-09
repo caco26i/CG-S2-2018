@@ -112,6 +112,7 @@ int SHADOWS;
 int N_OBJECTS;
 int SHOWPROGRESS;
 int MIRRORLEVELS;
+int TRANSPARENCYLEVEL;
 
 double AmbientIlluminationIntensity;
 

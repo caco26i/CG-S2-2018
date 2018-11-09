@@ -3,7 +3,8 @@ V_SIZE 567
 SHOWPROGRESS 1
 ANTIALIASING 1
 SHADOWS 1
-Mirror levels 4
+Mirror levels 1
+Transparency levels 4
 Eye x 500 y 0 z -1000
 Background R 0.03 G 0.0 B 0.1
 Ambient light 0.2
@@ -18,7 +19,7 @@ type 1
 radius 200
 x 425 y 320 z 300
 R 1 G 0 B 0
-Ka 0.4 Kd 1 Ks 1 Kn 10 O1 0.5 O2 0.5 O3 0
+Ka 0.4 Kd 1 Ks 1 Kn 10 O1 0.5 O2 0.2 O3 0.3
 
 type 1
 radius 15
@@ -78,7 +79,7 @@ x 0 y 0 z 0
 x 1 y 0 z 2
 x 1 y 1 z 2
 R 1 G 0 B 1
-Ka 0.3 Kd 1 Ks 0 Kn 1 O1 1 O2 0 O3 0
+Ka 0.3 Kd 1 Ks 0 Kn 1 O1 0.5 O2 0.5 O3 0
 
 type 6
 radius 210
@@ -97,4 +98,4 @@ d2 100
 center x 100 y 250 z 100
 axis x 1 y 0 z 0
 R 1 G 0 B 0
-Ka 0.4 Kd 0.8 Ks 0.8 Kn 20 O1 1 O2 0 O3 0
+Ka 0.2 Kd 1 Ks 1 Kn 10 O1 0.2 O2 0 O3 0.8
