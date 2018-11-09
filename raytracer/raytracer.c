@@ -241,7 +241,8 @@ INTERSECTION IntersectionPlane(void* obj, POINT e, POINT d){
 
     if(inter.t < EPSILON)inter.t = INF;
     if(inter.t != INF){
-        //printf("Colision con Cilindro\n");
+
+        //printf("Colision con Plano\n");
         inter.collision.x = e.x + inter.t * d.x;
         inter.collision.y = e.y + inter.t * d.y;
         inter.collision.z = e.z + inter.t * d.z;
@@ -560,6 +561,8 @@ void loadScene(){
     scanf("SHOWPROGRESS %d\n",&SHOWPROGRESS);
     scanf("ANTIALIASING %d\n",&ANTIALIASING);
     scanf("SHADOWS %d\n",&SHADOWS);
+    scanf("Mirror levels %d\n",&MIRRORLEVELS);
+    scanf("Transparency levels %d\n",&TRANSPARENCYLEVEL);
     scanf("Eye x %lf y %lf z %lf\n",&eye.x,&eye.y,&eye.z);
     scanf("Background R %lf G %lf B %lf\n",&background.R,&background.G,&background.B);
     scanf("Ambient light %lf\n",&AmbientIlluminationIntensity);
@@ -591,7 +594,7 @@ void loadScene(){
                 scanf("x %lf y %lf z %lf\n",&auxSphere->center.x,&auxSphere->center.y,&auxSphere->center.z);
                 scanf("R %lf G %lf B %lf\n",&objects[i].color.R,&objects[i].color.G,&objects[i].color.B);
                 //printf("R %lf G %lf B %lf\n",objects[i].color.R,objects[i].color.G,objects[i].color.B);
-                scanf("Ka %lf Kd %lf Ks %lf Kn %lf\n",&objects[i].Ka,&objects[i].Kd,&objects[i].Ks,&objects[i].Kn);
+                scanf("Ka %lf Kd %lf Ks %lf Kn %lf O1 %lf O2 %lf O3 %lf\n",&objects[i].Ka,&objects[i].Kd,&objects[i].Ks,&objects[i].Kn,&objects[i].O1,&objects[i].O2,&objects[i].O3);
                 objects[i].fun_ptr = &IntersectionSphere;
                 objects[i].norm_ptr = &GetNormalSphere;
                 break;
@@ -618,11 +621,15 @@ void loadScene(){
                 objects[i].fun_ptr = &IntersectionPlane;
                 objects[i].norm_ptr = &GetNormalPlane;
                 auxPlane->normal = dot(A, B);
+                double n = sqrt(myPow(auxPlane->normal.x, 2) + myPow(auxPlane->normal.y, 2) + myPow(auxPlane->normal.z, 2));
+                auxPlane->normal.x /=n;
+                auxPlane->normal.y /=n;
+                auxPlane->normal.z /=n;
                 auxPlane->center.x = points[0].x;
                 auxPlane->center.y = points[0].y;
                 auxPlane->center.z = points[0].z;
                 scanf("R %lf G %lf B %lf\n",&objects[i].color.R,&objects[i].color.G,&objects[i].color.B);
-                scanf("Ka %lf Kd %lf Ks %lf Kn %lf\n",&objects[i].Ka,&objects[i].Kd,&objects[i].Ks,&objects[i].Kn);
+                scanf("Ka %lf Kd %lf Ks %lf Kn %lf O1 %lf O2 %lf O3 %lf\n",&objects[i].Ka,&objects[i].Kd,&objects[i].Ks,&objects[i].Kn,&objects[i].O1,&objects[i].O2,&objects[i].O3);
                 break;
             case 3: // Polygons
                 
@@ -656,6 +663,11 @@ void loadScene(){
                     B.z = auxPolygon->points[2]->z - auxPolygon->points[0]->z;
 
                     auxPolygon->plane->normal = dot(A, B);
+
+                    double n = sqrt(myPow(auxPolygon->plane->normal.x, 2) + myPow(auxPolygon->plane->normal.y, 2) + myPow(auxPolygon->plane->normal.z, 2));
+                    auxPolygon->plane->normal.x /=n;
+                    auxPolygon->plane->normal.y /=n;
+                    auxPolygon->plane->normal.z /=n;
                 }
                 else {
                     auxPolygon->plane->normal.x = auxPolygon->points[1]->x;
@@ -684,7 +696,7 @@ void loadScene(){
                 }
 
                 scanf("R %lf G %lf B %lf\n",&objects[i].color.R,&objects[i].color.G,&objects[i].color.B);
-                scanf("Ka %lf Kd %lf Ks %lf Kn %lf\n",&objects[i].Ka,&objects[i].Kd,&objects[i].Ks,&objects[i].Kn);
+                scanf("Ka %lf Kd %lf Ks %lf Kn %lf O1 %lf O2 %lf O3 %lf\n",&objects[i].Ka,&objects[i].Kd,&objects[i].Ks,&objects[i].Kn,&objects[i].O1,&objects[i].O2,&objects[i].O3);
                 break;
             case 4: // Cylinders
                 objects[i].object = (void*)malloc(sizeof(CYLINDER));
@@ -700,7 +712,7 @@ void loadScene(){
                 scanf("axis x %lf y %lf z %lf\n",&auxCylinder->axis.x,&auxCylinder->axis.y,&auxCylinder->axis.z);
 
                 scanf("R %lf G %lf B %lf\n",&objects[i].color.R,&objects[i].color.G,&objects[i].color.B);
-                scanf("Ka %lf Kd %lf Ks %lf Kn %lf\n",&objects[i].Ka,&objects[i].Kd,&objects[i].Ks,&objects[i].Kn);
+                scanf("Ka %lf Kd %lf Ks %lf Kn %lf O1 %lf O2 %lf O3 %lf\n",&objects[i].Ka,&objects[i].Kd,&objects[i].Ks,&objects[i].Kn,&objects[i].O1,&objects[i].O2,&objects[i].O3);
                 break;
             case 5: // Disc
                 objects[i].object = (void*)malloc(sizeof(DISC));
@@ -732,7 +744,7 @@ void loadScene(){
                 auxDisc->plane->normal.y *= -1.0;
                 auxDisc->plane->normal.z *= -1.0;
                 scanf("R %lf G %lf B %lf\n",&objects[i].color.R,&objects[i].color.G,&objects[i].color.B);
-                scanf("Ka %lf Kd %lf Ks %lf Kn %lf\n",&objects[i].Ka,&objects[i].Kd,&objects[i].Ks,&objects[i].Kn);
+                scanf("Ka %lf Kd %lf Ks %lf Kn %lf O1 %lf O2 %lf O3 %lf\n",&objects[i].Ka,&objects[i].Kd,&objects[i].Ks,&objects[i].Kn,&objects[i].O1,&objects[i].O2,&objects[i].O3);
                 break;
             case 6: // Oval
                 objects[i].object = (void*)malloc(sizeof(OVAL));
@@ -762,7 +774,7 @@ void loadScene(){
                 auxOval->normal.y *= -1.0;
                 auxOval->normal.z *= -1.0;
                 scanf("R %lf G %lf B %lf\n",&objects[i].color.R,&objects[i].color.G,&objects[i].color.B);
-                scanf("Ka %lf Kd %lf Ks %lf Kn %lf\n",&objects[i].Ka,&objects[i].Kd,&objects[i].Ks,&objects[i].Kn);
+                scanf("Ka %lf Kd %lf Ks %lf Kn %lf O1 %lf O2 %lf O3 %lf\n",&objects[i].Ka,&objects[i].Kd,&objects[i].Ks,&objects[i].Kn,&objects[i].O1,&objects[i].O2,&objects[i].O3);
                 break;
             case 7: // Cone
                 objects[i].object = (void*)malloc(sizeof(CONE));
@@ -778,7 +790,7 @@ void loadScene(){
                 scanf("axis x %lf y %lf z %lf\n",&auxCone->axis.x,&auxCone->axis.y,&auxCone->axis.z);
 
                 scanf("R %lf G %lf B %lf\n",&objects[i].color.R,&objects[i].color.G,&objects[i].color.B);
-                scanf("Ka %lf Kd %lf Ks %lf Kn %lf\n",&objects[i].Ka,&objects[i].Kd,&objects[i].Ks,&objects[i].Kn);
+                scanf("Ka %lf Kd %lf Ks %lf Kn %lf O1 %lf O2 %lf O3 %lf\n",&objects[i].Ka,&objects[i].Kd,&objects[i].Ks,&objects[i].Kn,&objects[i].O1,&objects[i].O2,&objects[i].O3);
                 break;
             default:
                 break;
@@ -913,71 +925,78 @@ void init() {
     srand (time(NULL));
     viewport.pmin.x = 0;
     viewport.pmin.y = 0;
-    viewport.pmin.z = 0;
+    viewport.pmin.z = -100;
     viewport.pmax.x = H_SIZE;
     viewport.pmax.y = V_SIZE;
-    viewport.pmax.z = 0;
+    viewport.pmax.z = -100;
 }
 
-INTERSECTION First_Intersection(POINT e, POINT d) {
+INTERSECTION* First_Intersection(POINT e, POINT d, int n) {
     if(DEBUG)printf("First_Intersection\n");
     double tmin;
-    INTERSECTION intersection;
-    intersection.t = INF;
+    INTERSECTION* intersections = (INTERSECTION*)malloc(sizeof(INTERSECTION)*n);
     INTERSECTION auxIntersection;
-
+    for (int i = 0; i < n; ++i)
+    {
+        intersections[i].t = INF;
+    }
     for (int i = 0; i < N_OBJECTS; ++i)
     {
         if(DEBUG)printf("------First_Intersection %d\n", i);
-
+        //printf("------First_Intersection %d\n", i);
         auxIntersection = (objects[i].fun_ptr)((void*)&objects[i], e, d);
-
+/*
         if(auxIntersection.t > (double)SHADOW_K && auxIntersection.t < intersection.t){
             intersection = auxIntersection;
         }
-
+*/
+        if(auxIntersection.t > (double)SHADOW_K){
+            for (int j = 0; j < n; ++j)
+            {
+                if(intersections[j].t == INF){
+                    intersections[j].t = auxIntersection.t;
+                    intersections[j].m = auxIntersection.m;
+                    intersections[j].collision = auxIntersection.collision;
+                    intersections[j].object = auxIntersection.object;
+                }else{
+                    if(auxIntersection.t <= intersections[j].t){
+                        for (int h = n-2; h >= j; --h)
+                        {
+                            if(intersections[h].t != INF){
+                                intersections[h + 1].t = intersections[h].t;
+                                intersections[h + 1].m = intersections[h].m;
+                                intersections[h + 1].collision = intersections[h].collision;
+                                intersections[h + 1].object = intersections[h].object;
+                            }
+                        }
+                        intersections[j].t = auxIntersection.t;
+                        intersections[j].m = auxIntersection.m;
+                        intersections[j].collision = auxIntersection.collision;
+                        intersections[j].object = auxIntersection.object;
+                    }
+                }
+            }
+        }
     }
-    return intersection;
+    return intersections;
 }
-
-COLOR De_que_color(POINT e, POINT d) {
-	INTERSECTION intersection;
-	//if(DEBUG)printf("De_que_color\n");
-    intersection = First_Intersection(e, d);
-    COLOR color;
-
-    if (intersection.t == INF){
-        color = background;
-    }
-
-    else {
-
-
-    	//printf("pega en algo\n");
-        OBJ* obj = (OBJ*)intersection.object;
-		color = ((OBJ*)intersection.object)->color;
-		//printf("interseccion R %lf G %lf B %lf\n",color.R,color.G,color.B);
-        //POINT intersectionPoint;
+/*
+COLOR Apply_light_models(COLOR color, POINT d, POINT N, INTERSECTION inter){
+    OBJ* obj = (OBJ*)inter.object;
+    if(obj->Kd > 0.0){
+        POINT L;
         double intensity = 0;
         double E = 0;
-
-        intersection.collision.x = e.x + intersection.t * d.x;
-        intersection.collision.y = e.y + intersection.t * d.y;
-        intersection.collision.z = e.z + intersection.t * d.z;
-        double n;
-        POINT N = (obj->norm_ptr)(intersection);
-        POINT L;
-
         for (int i = 0; i < N_LIGHTS; ++i)
         {
 
 
-    		double Fatt,cosNL,cosVR;
+            double Fatt,cosNL,cosVR;
 
-            L.x = lights[i]->pos.x - intersection.collision.x;
-            L.y = lights[i]->pos.y - intersection.collision.y;
-            L.z = lights[i]->pos.z - intersection.collision.z;
-            n = sqrt(myPow(L.x, 2) + myPow(L.y, 2) + myPow(L.z, 2));
+            L.x = lights[i]->pos.x - inter.collision.x;
+            L.y = lights[i]->pos.y - inter.collision.y;
+            L.z = lights[i]->pos.z - inter.collision.z;
+            double n = sqrt(myPow(L.x, 2) + myPow(L.y, 2) + myPow(L.z, 2));
             L.x /=n;
             L.y /=n;
             L.z /=n;
@@ -985,12 +1004,24 @@ COLOR De_que_color(POINT e, POINT d) {
 
             bool lid = true;
             if(SHADOWS){
-            	INTERSECTION intersectionLight;
-            	intersectionLight = First_Intersection(intersection.collision, L);
+                INTERSECTION* auxintersectionsLight;
 
-	            if (intersectionLight.t != INF && intersectionLight.t < n){
-	            	lid = false;
-			    }
+                INTERSECTION intersectionsLight[1];
+                auxintersectionsLight = First_Intersection(inter.collision, L, 1);
+                //intersectionsLight[0] = auxintersectionsLight[0];
+
+                intersectionsLight[0].t = auxintersectionsLight[0].t;
+                intersectionsLight[0].m = auxintersectionsLight[0].m;
+                intersectionsLight[0].collision = auxintersectionsLight[0].collision;
+                intersectionsLight[0].object = auxintersectionsLight[0].object;
+
+                free(auxintersectionsLight);
+                if (intersectionsLight[0].t != INF && intersectionsLight[0].t < n){
+                    lid = false;
+                }
+
+                //free(intersectionsLight);
+                //printf("free intersectionsLight\n");
             }
 
 
@@ -998,28 +1029,28 @@ COLOR De_que_color(POINT e, POINT d) {
             if(lid){
 
 
-            	POINT R;
-            	POINT V;
+                POINT R;
+                POINT V;
 
-            	Fatt = fmin(1.0,1.0 / (myPow(n/(lights[i]->intensity * 1000.0),2)));
+                Fatt = fmin(1.0,1.0 / (myPow(n/(lights[i]->intensity * 1000.0),2)));
 
-            	cosNL = (L.x * N.x + L.y * N.y + L.z * N.z);
+                cosNL = (L.x * N.x + L.y * N.y + L.z * N.z);
 
-            	R.x = 2 * N.x * cosNL - L.x;
-            	R.y = 2 * N.y * cosNL - L.y;
-            	R.z = 2 * N.z * cosNL - L.z;
+                R.x = 2 * N.x * cosNL - L.x;
+                R.y = 2 * N.y * cosNL - L.y;
+                R.z = 2 * N.z * cosNL - L.z;
 
-            	V.x = -d.x;
-            	V.y = -d.y;
-            	V.z = -d.z;
+                V.x = -d.x;
+                V.y = -d.y;
+                V.z = -d.z;
 
-            	cosVR = (V.x * R.x + V.y * R.y + V.z * R.z);
+                cosVR = (V.x * R.x + V.y * R.y + V.z * R.z);
 
 
-            	if(cosNL > 0){
-            		if(cosVR > 0)E += (myPow(cosVR,obj->Kn) * obj->Ks * lights[i]->intensity * Fatt);
-            		if(cosNL > 0)intensity += (cosNL * obj->Kd * lights[i]->intensity * Fatt);
-            	}
+                if(cosNL > 0){
+                    if(cosVR > 0)E += (myPow(cosVR,obj->Kn) * obj->Ks * lights[i]->intensity * Fatt);
+                    if(cosNL > 0)intensity += (cosNL * obj->Kd * lights[i]->intensity * Fatt);
+                }
 
 
             }
@@ -1032,7 +1063,9 @@ COLOR De_que_color(POINT e, POINT d) {
         intensity += obj->Ka * AmbientIlluminationIntensity;
 
         if(intensity>1.0)intensity=1.0;
-		if(E>1.0)E=1.0;
+        if(E>1.0)E=1.0;
+
+
 
         color.R *=intensity;
         color.G *=intensity;
@@ -1041,12 +1074,226 @@ COLOR De_que_color(POINT e, POINT d) {
         color.R = color.R + E * (1 - color.R);
         color.G = color.G + E * (1 - color.G);
         color.B = color.B + E * (1 - color.B);
-
-
     }
     return color;
 }
 
+COLOR De_que_color(POINT e, POINT d, int c) {
+
+	INTERSECTION* auxintersections;
+	//if(DEBUG)printf("De_que_color\n");
+    auxintersections = First_Intersection(e, d , TRANSPARENCYLEVEL);
+    INTERSECTION intersections[TRANSPARENCYLEVEL];
+    for (int i = 0; i < TRANSPARENCYLEVEL; ++i)
+    {
+        intersections[i] = auxintersections[i];
+    }
+    free(auxintersections);
+    COLOR color;
+
+    if (intersections[0].t == INF){
+        color = background;
+    }
+
+    else {
+
+
+        OBJ* obj = (OBJ*)intersections[0].object;
+		color = ((OBJ*)intersections[0].object)->color;
+
+        intersections[0].collision.x = e.x + intersections[0].t * d.x;
+        intersections[0].collision.y = e.y + intersections[0].t * d.y;
+        intersections[0].collision.z = e.z + intersections[0].t * d.z;
+        double n;
+        POINT N = (obj->norm_ptr)(intersections[0]);
+        double cos = (N.x * -d.x + N.y * -d.y + N.z * -d.z);
+        if(cos < 0){
+            N.x *= -1;
+            N.y *= -1;
+            N.z *= -1;
+        }
+
+
+        if(c > 0 && obj->O2 > 0.0){
+
+            color.R = color.R * obj->O1;
+            color.G = color.G * obj->O1;
+            color.B = color.B * obj->O1;
+
+            POINT R;
+            double dotNV = N.x * -d.x + N.y * -d.y + N.z * -d.z;
+            R.x = 2 * N.x * dotNV + d.x;
+            R.x = 2 * N.y * dotNV + d.y;
+            R.x = 2 * N.z * dotNV + d.z;
+
+            COLOR colorReflejado = De_que_color(intersections[0].collision, R , c-1);
+            color.R += colorReflejado.R * obj->O2;
+            color.G += colorReflejado.G * obj->O2;
+            color.B += colorReflejado.B * obj->O2;
+
+        }
+
+
+        color = Apply_light_models(color, d, N,intersections[0]);
+
+
+    }
+
+    //free(intersections);
+    //printf("free intersections\n");
+    return color;
+}
+*/
+
+COLOR De_que_color(POINT e, POINT d, int c) {
+
+    INTERSECTION intersection;
+    //if(DEBUG)printf("De_que_color\n");
+    intersection = First_Intersection(e, d,1)[0];
+    COLOR color;
+
+    if (intersection.t == INF){
+        color = background;
+    }
+
+    else {
+
+
+        //printf("pega en algo\n");
+        OBJ* obj = (OBJ*)intersection.object;
+        color = ((OBJ*)intersection.object)->color;
+        //printf("interseccion R %lf G %lf B %lf\n",color.R,color.G,color.B);
+        //POINT intersectionPoint;
+        double intensity = 0;
+        double E = 0;
+
+        intersection.collision.x = e.x + intersection.t * d.x;
+        intersection.collision.y = e.y + intersection.t * d.y;
+        intersection.collision.z = e.z + intersection.t * d.z;
+        double n;
+        POINT N = (obj->norm_ptr)(intersection);
+
+        double cos = (N.x * -d.x + N.y * -d.y + N.z * -d.z);
+        if(cos < 0){
+            N.x *= -1;
+            N.y *= -1;
+            N.z *= -1;
+        }
+        POINT L;
+        color.R = color.R * obj->O1;
+        color.G = color.G * obj->O1;
+        color.B = color.B * obj->O1;
+
+
+        if(c > 0 && obj->O2 > 0.0){
+            POINT R;
+            double dotNV = N.x * -d.x + N.y * -d.y + N.z * -d.z;
+            R.x = 2 * N.x * dotNV + d.x;
+            R.x = 2 * N.y * dotNV + d.y;
+            R.x = 2 * N.z * dotNV + d.z;
+
+            COLOR colorReflejado = De_que_color(intersection.collision, R , c-1);
+            color.R += colorReflejado.R * obj->O2;
+            color.G += colorReflejado.G * obj->O2;
+            color.B += colorReflejado.B * obj->O2;
+
+
+        }
+
+        if(obj->O3 > 0.0){
+            //printf("-------------------------------------------------------------\n");
+            COLOR colorTransparentado = De_que_color(intersection.collision, d , 0);
+            color.R += colorTransparentado.R * obj->O3;
+            color.G += colorTransparentado.G * obj->O3;
+            color.B += colorTransparentado.B * obj->O3;
+        }
+
+        if(obj->Kd > 0.0){
+            for (int i = 0; i < N_LIGHTS; ++i)
+            {
+
+
+                double Fatt,cosNL,cosVR;
+
+                L.x = lights[i]->pos.x - intersection.collision.x;
+                L.y = -lights[i]->pos.y - intersection.collision.y;
+                L.z = lights[i]->pos.z - intersection.collision.z;
+                n = sqrt(myPow(L.x, 2) + myPow(L.y, 2) + myPow(L.z, 2));
+                L.x /=n;
+                L.y /=n;
+                L.z /=n;
+
+
+                bool lid = true;
+                if(SHADOWS){
+                    INTERSECTION intersectionLight;
+                    intersectionLight = First_Intersection(intersection.collision, L,1)[0];
+
+                    if (intersectionLight.t != INF && intersectionLight.t < n){
+                        lid = false;
+                    }
+                }
+
+
+
+                if(lid){
+
+
+                    POINT R;
+                    POINT V;
+
+                    Fatt = fmin(1.0,1.0 / (myPow(n/(lights[i]->intensity * 1000.0),2)));
+
+                    cosNL = (L.x * N.x + L.y * N.y + L.z * N.z);
+
+                    R.x = 2 * N.x * cosNL - L.x;
+                    R.y = 2 * N.y * cosNL - L.y;
+                    R.z = 2 * N.z * cosNL - L.z;
+
+                    V.x = -d.x;
+                    V.y = -d.y;
+                    V.z = -d.z;
+
+                    cosVR = (V.x * R.x + V.y * R.y + V.z * R.z);
+
+
+                    if(cosNL > 0){
+                        if(cosVR > 0)E += (myPow(cosVR,obj->Kn) * obj->Ks * lights[i]->intensity * Fatt);
+                        if(cosNL > 0)intensity += (cosNL * obj->Kd * lights[i]->intensity * Fatt);
+                    }
+
+
+                }
+
+
+
+
+            }
+
+            intensity += obj->Ka * AmbientIlluminationIntensity;
+
+            if(intensity>1.0)intensity=1.0;
+            if(E>1.0)E=1.0;
+
+            if(intensity < 0.05)intensity = 1;
+            //if(E < 0.05)E = 1;
+
+            color.R *=intensity;
+            color.G *=intensity;
+            color.B *=intensity;
+
+            color.R = color.R + E * (1 - color.R);
+            color.G = color.G + E * (1 - color.G);
+            color.B = color.B + E * (1 - color.B);
+        }
+
+
+
+
+    }
+    //printf("R %lf G %lf B %lf\n",color.R,color.G,color.B);
+    return color;
+}
 void raytracer() {
     int x_min = viewport.pmin.x;
     int y_min = viewport.pmin.y;
@@ -1067,8 +1314,8 @@ void raytracer() {
         	color.B = 0;
 
         	if(!ANTIALIASING){
-        		w.x = i + 0.5;//((i * (x_max - x_min)) / H_SIZE) + x_min;
-	            w.y = j + 0.5;//((j * (y_max - y_min)) / V_SIZE) + y_min;
+        		w.x = ((i * (x_max - x_min)) / H_SIZE) + x_min;
+	            w.y = ((j * (y_max - y_min)) / V_SIZE) + y_min;
 	            w.z = 0;
 
 	            double L = sqrt(myPow(w.x - eye.x, 2) + myPow(w.y - eye.y, 2) + myPow(w.z - eye.z, 2));
@@ -1076,7 +1323,7 @@ void raytracer() {
 	            d.y = (w.y-eye.y)/L;
 	            d.z = (w.z-eye.z)/L;
 
-	            color = De_que_color(eye, d);
+	            color = De_que_color(eye, d, MIRRORLEVELS);
         	}else{
         		for (int k = 0; k < N_RAYS / 2; ++k)
 	        	{
@@ -1091,7 +1338,7 @@ void raytracer() {
 			            d.y = (w.y-eye.y)/L;
 			            d.z = (w.z-eye.z)/L;
 
-			            COLOR auxColor = De_que_color(eye, d);
+			            COLOR auxColor = De_que_color(eye, d, MIRRORLEVELS);
 			            color.R += auxColor.R;
 			        	color.G += auxColor.G;
 			        	color.B += auxColor.B;
@@ -1104,10 +1351,10 @@ void raytracer() {
 	        	color.B /= N_RAYS;
         	}
 
-            plot(i, j, color);
+            plot(i,V_SIZE - j, color);
         }
     }
-    printf("Listo\n");
+    printf("Listo raytracing\n");
 }
 
 int main(int argc, char **argv) {
@@ -1124,8 +1371,9 @@ int main(int argc, char **argv) {
 
 
     raytracer();
+    printf("return raytracing\n");
     write_truecolor_tga();
-
+    printf("Listo\n");
     system("convert out.tga out.png");
     printf("Fin del programa %s...\n\n", argv[0]);
 
