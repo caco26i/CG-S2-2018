@@ -111,6 +111,7 @@ int ANTIALIASING;
 int SHADOWS;
 int N_OBJECTS;
 int SHOWPROGRESS;
+int MIRRORLEVELS;
 
 double AmbientIlluminationIntensity;
 
